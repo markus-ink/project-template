@@ -1,0 +1,25 @@
+id: 01M5TXV12F8CEY8JXPDSD65JYY
+name: タスク
+key_prefix: TASK
+properties:
+  status:
+    type: status
+    label: ステータス
+    options:
+      - { key: todo,        label: 未着手,   color: gray }
+      - { key: in_progress, label: 進行中,   color: blue }
+      - { key: review,      label: レビュー, color: yellow }
+      - { key: done,        label: 完了,     color: green, closed: true }
+    default: todo
+  assignee: { type: person,       label: 担当者 }
+  priority:
+    type: select
+    label: 優先度
+    options:
+      - { key: high,   label: 高, color: red }
+      - { key: medium, label: 中, color: orange }
+      - { key: low,    label: 低, color: gray }
+  labels:   { type: multi_select, label: ラベル }
+  start:    { type: date,         label: 開始日 }
+  due:      { type: date,         label: 期限 }
+  estimate: { type: number,       label: 見積(h) }
