@@ -1,157 +1,64 @@
 # AGENTS.md
 
-<!-- markus:begin v7 -->
+<!-- markus:begin v14 -->
 <!-- この印の間は markus が書き換えます（markus の規約）。変えないでください。決まりを足すときは、下の「このプロジェクトの決まり」に書いてください。 -->
 
 このリポジトリは **markus** で管理されている仕様書リポジトリです。人は markus の Web UI から編集し、AI エージェントはこのリポジトリを直接編集して push します。両方から同時に編集されるので、以下の規約を守ってください。下の「このプロジェクトの決まり」と食い違うときは、この規約を優先してください。
 
 ## 1. 作業を始める前に
 
-- markus の Web とこの clone を同期していることがある（Web の設定の「AI と編集」）。同期している間は、Web で書いた内容がすぐこの clone のファイルに書き込まれ、あなたが書き換えた内容も Web に出る。
-- 同期しているかは `find .git/markus-sync -mmin -2` で分かる（何か出れば同期している。Web が 30 秒ごとに書き直している）。
+- markus の Web とこの clone を同期していることがある（Web の設定の「AI エージェントと編集」）。同期している間は、Web で書いた内容がすぐこの clone のファイルに書き込まれ、あなたが書き換えた内容も Web に出る。同期しているかは `find .git/markus-sync -mmin -2` で分かる（何か出れば同期している）。
 - まず最新にする。
   - 同期していなければ `git pull --rebase --autostash` する。
-  - 同期していれば `git fetch` してから `git reset @{u}` する（`--hard` は付けない）。同期している間は、Web で保存した中身も書きかけも、もうこの clone のファイルにある。古いのは git の記録だけなので、ファイルには触らずに記録だけを GitHub の最新に合わせる。`git pull` は、Web で新しく作ったページがあると `--autostash` を付けても止まる。
+  - 同期していれば `git fetch` してから `git reset @{u}` する（`--hard` は付けない）。Web の中身はもうファイルにあるので、git の記録だけを合わせる。`git pull` はしない（Web で新しく作ったページがあると止まる）。
   - 同期していて、push していないコミットがある（`git fetch` の後の `git log @{u}..` に何か出る）ときは、`git reset @{u}` しない（そのコミットが無くなる）。人に聞く。
 - 同期している間は:
   - 最新にした後も残る、まだコミットしていない変更は、Web で書いている途中の内容。消さない・戻さない・stash しない（`git reset --hard`・`git checkout .`・`git clean`・`git stash` をすると、Web の書きかけも消える）。人には報告しなくてよい。
   - commit するときは、自分が書き換えたファイルだけを `git add` する（`git add -A` で Web の書きかけを混ぜない）。
 
-## 2. ページ
+## 2. 書く前に必ず読む
 
-- ページは `.md` ファイル。フォルダはディレクトリ。
-- ページは必ず `docs/` の下に置く。`docs/` の外に置いた `.md` は markus の Web に出ない。
-- ファイル名はページタイトルから作る。正式なタイトルは frontmatter の `title`。
-  - ファイル名に使えない文字 `/ \ : * ? " < > |` は全角にする（`/` → `／`）。長さはタイトルの先頭 50 文字まで。同じフォルダに同じ名前があれば「 2」を付ける（`無題 2.md`）。
-- frontmatter は `ulid`・`title`（必須）と `rank`（任意）だけ。通常のページにほかのプロパティは付けない（プロパティを持つのは DB の行だけ）。
+ファイルを作る・書き換える前に、必ず次のファイルを読む。読まずに書くと、markus の Web で開けない・表示が崩れるファイルになる。
 
-```yaml
----
-ulid: 01JB8Z6Q3K4M5N6P7R8S9T0V1W   # ULID（markus がページを見分ける内部の ID）。新しいページを作るときは、今の時刻から自分で生成する
-title: ログイン機能
----
-```
+| 書くもの | 書く前に読む |
+|---|---|
+| ページ（`docs/` の `.md`）・DB の行の本文 | `.markus/agents/pages.md` |
+| DB の行のプロパティ・`_database.yml`・ページの中の DB の埋め込み | `.markus/agents/databases.md` |
+| シートの CSV・`_sheet.yml`・ページの中のシートの埋め込み | `.markus/agents/sheets.md` |
+| コメントの返信・解決・新しいスレッド。本文を書き換えてコメントの対象が変わったとき | `.markus/agents/comments.md` |
 
-- 既存の `ulid` は変えない。コピーして新しいページを作ったときは、新しい `ulid` を振り直す。
-- 知らないキーがあっても消さない・並び替えない。
-- 本文の先頭にタイトルの見出し（`# タイトル`）は書かない。タイトルは `title` だけに持つ。
-- `rank` は同じフォルダの中での並び順。新しいページでは省略してよい（タイトル順になる）。
-- フォルダの並び順は、そのフォルダの `_folder.yml` の `rank`。新しいフォルダでは作らなくてよい。
+- `.md` を書き終えたら、書き換えたファイルを渡して `node .markus/fmt.mjs <ファイル>…` を実行し、出た所を直す（`pages.md`）。
+- `.markus/config.yml` と `.markus/members.yml` は、頼まれたとき以外は変更しない。
 
-## 3. リンク
+## 3. 読み方
 
-- 内部リンクはリンク先の `ulid` で書く: `[パスワード再設定](markus:01M40K9K80H877GNPBH4V44450)`。表示文字列はリンク先のタイトルにする。
-- リンク先のファイルは ulid で探す: `grep -rl "ulid: 01M40K9K80H877GNPBH4V44450" docs/ databases/`
-- DB の行も、コメント（`.markus/comments/`）の中からも同じ形で書く。
-- ファイルをリネーム・移動してもリンクは直さなくてよい（ulid は変わらないため）。
+| 場所 | 中身 |
+|---|---|
+| `docs/` | ページ（`.md`）。フォルダはディレクトリ。タイトルは frontmatter の `title` |
+| `databases/` | データベース。`_database.yml` があるフォルダが 1 つの DB で、中の `.md` が 1 行ずつ。行のプロパティは frontmatter |
+| `sheets/` | シート（表計算）。`_sheet.yml` があるフォルダが 1 つのシートで、タブごとに 1 つの CSV |
+| `.markus/comments/` | コメント。`<ページの ulid>/<スレッドの ulid>.md` が 1 スレッドで、未解決は `status: open` |
+| `.markus/members.yml` | メンバーの `handle` と名前（DB の人の値は `handle`） |
+
+- 内部リンクは `[タイトル](markus:<ulid>)`。リンク先は `grep -rl "ulid: <ulid>" docs/ databases/ sheets/` で探す（DB・シートなら `_database.yml`・`_sheet.yml` が見つかる）。
+- 画像・PDF は `https://media.markus.ink/...` の URL で置いてある。見るときは URL から一時ディレクトリに保存して読み込む（例: `curl -sSo /tmp/login.png <URL>`。取得したファイルはコミットしない）。動画は `poster` の画像を見て、必要なら `ffmpeg` でフレームを切り出して見る。
+- markus の Web から保存されたコミットは、author が markus の App（bot）になる。実際に変更した人は、コミットメッセージの `Markus-User:` trailer で確かめる（`git blame` で bot と出た行も同じ）。
 
 ### 人から場所を渡されたとき
-
-markus の Web の「パスをコピー」などで、次の形で渡される。
 
 | 渡されたもの | 読み方 |
 |---|---|
 | `docs/機能/ログイン.md`・`docs/機能/` | リポジトリの一番上からのパス（末尾が `/` ならフォルダ） |
-| `docs/機能/ログイン.md:42-48` | そのファイルの 42〜48 行目（`:42` なら 42 行目）。frontmatter も 1 行目から数える |
+| `docs/機能/ログイン.md:42-48` | そのファイルの 42〜48 行目。frontmatter も 1 行目から数える |
 | `sheets/予算/月別.csv B2:D7` | その CSV の 2〜7 行目の B〜D 列 |
-| `https://…/p/<プロジェクト>/<ulid>` | markus の Web のページの URL。開かない（ログインが要る）。`<ulid>` で上と同じく `grep -rl "ulid: <ulid>" docs/ databases/` で探す |
-| `…/p/<プロジェクト>/db/<ulid>`・`…/sheet/<ulid>` | DB・シートの URL。`grep -rl "ulid: <ulid>" databases/ sheets/` で `_database.yml`・`_sheet.yml` を探す。`?row=<ulid>` は DB の行、`?tab=<名前>` はシートのタブ、`?block=<文字>` はページの中のその文字で始まるブロック（`&n=2` なら 2 つ目）、`?find=<文字>` はページの中のその文字のある所 |
-| `…/p/<プロジェクト>/-/<パス>` | ulid の無いページの URL。`-/` の後ろがパス |
+| markus の Web の URL（`https://…/p/<プロジェクト>/…`） | 開かない（ログインが要る）。URL の中の ulid で、上のとおりファイルを探す（`?row=<ulid>` は DB の行）。`…/-/<パス>` は `-/` の後ろがパス |
 
-- 渡された行の中身が話と合わなければ、ローカルの clone が古い。まず 1 のとおりに最新にする。
+- 渡された行の中身が話と合わなければ、clone が古い。1 のとおりに最新にする。
 
-## 4. データベース
+## 4. commit・push
 
-- データベースは `databases/` の下にある。`_database.yml` があるフォルダが 1 つの DB で、中の `.md` が 1 行ずつ（行 = ページ）。
-- 新しい DB を作るときは、`_database.yml` の先頭に `ulid`（ULID）を書く。ULID は今の時刻から生成する（サイドバーは `ulid` の順、つまり作った順に並ぶ）。ほかの例の `ulid` を真似て手で書かない。
-- DB は markus の Web のサイドバーに出る。ページの中に表示するときは ` ```markus-db ` ブロックを置き、`database:` には DB のフォルダ名（`タスク`）を書く。
-  - ブロックの `type`（table・board・timeline）・`group_by` などはビューで、全員に同じに見える。Web でビューを変えると、この行が書き換わる。`filter`・`sort` は最初の表示で、見る人が Web で変えた絞り込み・並べ替えはブラウザにだけ残る（ファイルは変わらない）。
-  - `filter` は `{ ステータス: { not: 完了 } }`、`sort` は `[{ 期限: asc }]` のように書く。`columns` は表に出す列。
-  - DB のページ（サイドバーから開くフルページ）のビューは `_database.yml` の `view` に書く（ブロックのビューとは別。書ける項目は同じ）。
-- 行のプロパティは frontmatter に書く。型と選択肢は `_database.yml` の `properties` に従う。
-  - プロパティと選択肢は、`_database.yml` にある名前（`ステータス: 進行中`）をそのまま書く。画面にも同じ名前が出る。英語のキーに直したり、別の言い方にしたりしない。
-  - 名前を変えるときは、markus の Web で変える（行・テンプレート・ビュー・その DB を表示しているページのブロックも一緒に書き換わる）。手で変えるなら、それらをすべて同じコミットで書き換える。
-  - ファイル&メディア（`type: files`）は `[{ name: 仕様書.pdf, url: https://media.markus.ink/... }]` と書く（ファイルは markus の Web でアップロードする）。
-- 人を指す値は `.markus/members.yml` の `handle` を使う（メールアドレスは書かない）。
-- `key_prefix` がある DB では、新しい行の `key` を「その DB 内の最大番号 + 1」にする（例: `MK-7`）。
-- `rank` はボードや手動の並び替えでの並び順。新しい行では省略してよい。
-- `_templates/` の中は行テンプレート。行を作るときに使ってよい。
-
-## 5. シート
-
-- シート（表計算）は `sheets/` の下にある。`_sheet.yml` があるフォルダが 1 つのシートで、タブごとに 1 つの CSV（`sheets/予算/月別.csv`）。
-- 新しいシートを作るときは、`_sheet.yml` の先頭に `ulid`（ULID）を書く。DB と同じく、今の時刻から生成する。
-- **値は CSV に書く。** 1 行目から普通の CSV で、カンマ・引用符・改行を含むセルは `"` で囲む（`"=ROUND(B2,0)"` のように、カンマを含む数式も囲む）。
-  - 日付は `2026-10-23`（時刻があれば `2026-10-23 09:30`）。
-  - 数式は `=SUM(B2:B7)` のように `=` から書く（計算した値は書かない）。ほかのタブは `月別!B8`。
-  - CSV の値を読むだけなら、`_sheet.yml` は見なくてよい。ただし、結合したセル（`merges`）の値は左上のセルにだけ入り、残りは空になる。
-- `_sheet.yml` は見た目。タブの並び順（`tabs` の順）・固定する行と列（`freeze`）・列の幅（`widths`）・結合（`merges`）・太字や背景色や表示形式（`styles`）・グラフ（`charts`）を書く。範囲は `A1:C3`（列全体は `B:B`）。色は `#f1f1ef` のように 16 進数で書く（ページの本文の色の名前とは違う）。
-  - **CSV の途中に行や列を足したり消したりしたら、`_sheet.yml` の範囲（`merges`・`styles`・`charts`）も同じだけずらす。** ずらさないと、色や結合が別のセルに付く。行は、できれば末尾に足す。
-  - タブを足すときは CSV を置いて、`tabs` に `- name: <CSV のファイル名から .csv を除いたもの>` を足す（足さなくても、名前順で後ろのタブになる）。
-  - グラフは表の上に浮かべて置く（スプレッドシートと同じ）。グラフは最初のタブ（「グラフ」）にまとめ、数字は次のタブに書くと、ページのブロックでグラフが先に見える。`charts` に `{ type: bar, range: A1:D7, title: 名前, at: G2, width: 480, height: 300 }`。`type` は `bar`（棒）・`line`（折れ線）・`pie`（円）。範囲の 1 行目が系列の名前、1 列目が項目の名前。ほかのタブの範囲は `月別!A1:D7`。`at` はグラフの左上を置くセル、`width`・`height` は大きさ（px）。`at` を書かなければ表の右に置く。ほかに `transpose: true`（行と列を入れ替える）・`hide: [系列の名前]`・`stacked: true`（棒の積み上げ）・`x_title`・`y_title`・`y_min`・`y_max`・`legend: bottom`（`none` で出さない）も書ける。
-- ページの中に表示するときは ` ```markus-sheet ` ブロックを置き、`sheet:` にシートのフォルダ名を書く。`tab:`（最初に出すタブ）・`range:`（出す範囲。省略すると左上の 10 行 × 10 列）は任意。範囲の中に置いたグラフも重ねて出る。
-
-## 6. 本文の記法
-
-GFM を基本に、次の拡張を使ってよい。
-
-| 種類 | 書き方 |
-|---|---|
-| 文字色・背景色 | `<span color="red">8 文字以上</span>` |
-| 表 | `<table header-row="false" header-column="false">` の中に `<colgroup><col width="200" color="blue"></colgroup>`・`<tr color="...">`・`<td color="...">` |
-| コールアウト | `<callout icon="⚠️" color="yellow_bg">` 〜 `</callout>` |
-| トグル | `<details color="gray"><summary>見出し</summary>` 〜 `</details>` |
-| 図 | ` ```mermaid ` |
-| HTML（画面モックなど） | ` ```html height="400" ` |
-| 画像の高さ | `<img src="..." alt="説明" height="300">`（高さを決めないなら `![説明](URL)`） |
-| PDF | `<embed src="..." type="application/pdf" title="仕様書.pdf" height="600">` |
-| 動画（ほかで公開されているもの） | `<video src="..." poster="..." title="..."></video>` |
-| DB ビューの埋め込み | ` ```markus-db ` の中に YAML |
-| シートの埋め込み | ` ```markus-sheet ` の中に YAML |
-| 空の行 | `&nbsp;` だけの段落（Web で入れた、何も書いていない行。消さない） |
-
-- 色の名前は `gray` `brown` `orange` `yellow` `green` `blue` `purple` `pink` `red`。背景色は `_bg` を付ける（`yellow_bg`）。`style` 属性や 16 進数の色コードは書かない。
-- `<callout>` `<details>` の中に Markdown を書くときは、開始タグの後と終了タグの前に空行を入れる。
-- 開始タグと終了タグの対応を崩さない。この表に無いタグは作らない。
-- リストの項目の中に区切り線・`<callout>`・`<details>` を書かない（書いても、markus ではリストの後ろに出る）。番号付きリストの項目の中には、文章と入れ子のリストだけを書く（表・コードなども書かない）。
-- 表は `<table>` の形で書く（GFM の表も読めるが、新しく書くときは使わない）。`header-row`（1 行目を見出しにする）と `header-column`（1 列目を見出しにする）は両方書き（書かなければ見出しなし）、見出しのセルも `<td>` で書く。セルの中は 1 行の Markdown で、改行は `<br>`。
-
-## 7. 画像・PDF
-
-- 画像・PDF はリポジトリに置かない。markus の Web でアップロードした URL（`https://media.markus.ink/...`）を使う。
-- 画像の代替テキストには、画像の内容を文章で書く。GIF は最初のコマしか見えないので、動きも文章で書く。
-- 画像・PDF を見るときは、URL から一時ディレクトリに保存して読み込む（例: `curl -sSo /tmp/login.png <URL>`）。SVG は文字として読める。取得したファイルはコミットしない。
-- 動画はアップロードできない。ほかで公開されている動画は、まず `poster` の画像を見て、必要なら `ffmpeg` でフレームを切り出して見る。
-
-## 8. コメント
-
-- コメントは `.markus/comments/<ページの ulid>/<スレッドの ulid>.md` にある。未解決は `status: open`。
-- 返信はファイルの末尾に `### ai:<エージェント名> · <日時>` の見出しで追記する（例: `### ai:claude-code · 2026-10-19T10:00+09:00`）。
-- 解決してよいか分からないときは `status` を変えない。
-
-## 9. 変更した人の調べ方
-
-- markus の Web から保存されたコミットは、author が markus の App（bot）になる。実際に変更した人は、コミットメッセージの trailer で確かめる。
-
-```
-ログイン機能 を更新
-
-Markus-User: tanaka
-Markus-Project: prj_sample
-Co-authored-by: 田中 太郎 <...>
-```
-
-- `git blame` で bot と出た行も同じ。そのコミットのメッセージの `Markus-User:` を見る。
-
-## 10. commit・push
-
-- 頼まれていなければ、commit・push しない。人はまず markus の Web で、書き換えた内容を確かめてから保存したいため。
-  - Web とローカルを同期していれば（1 を参照）、書き換えた内容はすぐ Web に未保存の変更として出る。終わったら「Web で確かめて保存してください」と伝える。
-  - 同期していなければ、push するまで Web には出ない。終わったら、push してよいかを人に聞く。
-- push するときは:
-  - 同期していなければ、もう一度 `git pull --rebase --autostash` して、Web 側の変更を取り込んでから push する。
-  - 同期していれば、commit する前に 1 のとおりに `git fetch` → `git reset @{u}` してから、自分が書き換えたファイルだけを `git add` して commit し、すぐ push する。その間にほかの人が保存して push が断られたら、もう一度 `git fetch` → `git reset @{u}` する（今のコミットは無くなるが、中身はファイルに残っている）。それから自分のファイルを `git add` し直して commit・push する。
-- `.markus/config.yml` と `.markus/members.yml` は、頼まれたとき以外は変更しない。
+- 頼まれていなければ、commit・push しない（人はまず Web で、書き換えた内容を確かめてから保存したいため）。終わったら、同期していれば「Web で確かめて保存してください」と伝え、同期していなければ push してよいかを聞く。
+- push するときは、もう一度 1 のとおりに最新にしてから commit し、すぐ push する（同期していれば、自分が書き換えたファイルだけを `git add`）。同期していて push が断られたら、`git fetch` → `git reset @{u}` からやり直す（今のコミットは無くなるが、中身はファイルに残っている）。
 
 <!-- markus:end -->
 
