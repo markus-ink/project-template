@@ -8,7 +8,7 @@ properties:
       - { name: 未着手,   color: gray }
       - { name: 進行中,   color: blue }
       - { name: レビュー, color: yellow }
-      - { name: 完了,     color: green, closed: true }
+      - { name: 完了,     color: green }
     default: 未着手
   担当者:  { type: person }
   優先度:

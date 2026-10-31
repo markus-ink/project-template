@@ -1,6 +1,6 @@
 # データベースを書く
 
-このファイルは markus が書き換えます（markus の規約）。変えないでください。決まりを足すときは、AGENTS.md の「このプロジェクトの決まり」に書いてください。
+このファイルは Markus が書き換えます（Markus の規約）。変えないでください。決まりを足すときは、AGENTS.md の「このプロジェクトの決まり」に書いてください。
 
 DB の行・`_database.yml`・ページの中の DB の埋め込みを作る・書き換えるときの決まりです。行の本文は、ページと同じく `pages.md` の記法で書く。
 
@@ -24,7 +24,7 @@ properties:                       # 並びが表の列の順になる
     options:
       - { name: 未着手,   color: gray }
       - { name: 進行中,   color: blue }
-      - { name: 完了,     color: green, closed: true }
+      - { name: 完了,     color: green }
     default: 未着手
   担当者:  { type: person }
   優先度:
@@ -44,16 +44,16 @@ view:                             # DB のページ（サイドバーから開�
 | `number` | `見積(h): 3` | |
 | `select` | `優先度: 高` | 選択肢は `options` で決める |
 | `multi_select` | `ラベル: [UI, 認証]` | 選択肢の定義は任意 |
-| `status` | `ステータス: 進行中` | select と同じで、ボードの列・完了の扱い（`closed`）を持つ |
+| `status` | `ステータス: 進行中` | select と同じだが、空にできない。新しい行には `default` が入る |
 | `date` | `期限: 2026-11-08` | 期間は 2 つの date で表す |
 | `person` | `担当者: tanaka`・`[tanaka, suzuki]` | `.markus/members.yml` の `handle` |
 | `checkbox` | `承認: true` | |
 | `url` | `Figma: https://...` | |
-| `files` | `[{ name: 仕様書.pdf, url: https://media.markus.ink/... }]` | ファイルは markus の Web でアップロードする |
+| `files` | `[{ name: 仕様書.pdf, url: https://media.markus.ink/... }]` | ファイルは Markus の Web でアップロードする |
 | `relation` | `先行タスク: [01M1C8S2..., 01M1EDEA...]` | 同じ DB の行の `ulid` の並び。`reverse_of: 先行タスク` を付けたプロパティは逆向きで、値は書かない |
 
 - 名前の列（`title`）はプロパティに書かない。
-- 選択肢は `{ name: …, color: …, closed: true }`（`closed` は完了の扱い）。色の名前は `pages.md` と同じ（`gray` `brown` `orange` `yellow` `green` `blue` `purple` `pink` `red`）。
+- 選択肢は `{ name: …, color: … }`。色の名前は `pages.md` と同じ（`gray` `brown` `orange` `yellow` `green` `blue` `purple` `pink` `red`）。
 - プロパティに `ulid`・`id`・`title`・`key`・`rank` の名前は付けない（予約されている）。
 - 知らないキーは消さない。
 
@@ -75,13 +75,13 @@ key: MK-3
 ```
 
 - プロパティと選択肢は、`_database.yml` にある名前（`ステータス: 進行中`）をそのまま書く。画面にも同じ名前が出る。英語のキーに直したり、別の言い方にしたりしない。
-- 名前を変えるときは、markus の Web で変える（行・テンプレート・ビュー・その DB を表示しているページのブロックも一緒に書き換わる）。手で変えるなら、それらをすべて同じコミットで書き換える。
+- 名前を変えるときは、Markus の Web で変える（行・テンプレート・ビュー・その DB を表示しているページのブロックも一緒に書き換わる）。手で変えるなら、それらをすべて同じコミットで書き換える。
 - 値の書き方は、上の 2 の型の表のとおり。人を指す値は `.markus/members.yml` の `handle` を使う（メールアドレスは書かない）。
 - `key_prefix` がある DB では、新しい行の `key` を「その DB 内の最大番号 + 1」にする（例: `MK-7`）。
 
 ## 4. ビューと埋め込み
 
-- DB は markus の Web のサイドバーに出る。ページの中に表示するときは ` ```markus-db ` ブロックを置く。
+- DB は Markus の Web のサイドバーに出る。ページの中に表示するときは ` ```markus-db ` ブロックを置く。
 
 ```markus-db
 database: タスク
