@@ -7,7 +7,7 @@
 ## 1. シートと CSV
 
 - シートは `sheets/` の下にある。`_sheet.yml` があるフォルダが 1 つのシートで、タブごとに 1 つの CSV（`sheets/予算/月別.csv`）。ファイル名はタブの名前 + `.csv`。
-- 新しいシートを作るときは、`_sheet.yml` の先頭に `ulid`（ULID）を書く。今の時刻から生成し、ほかの例の `ulid` を真似て手で書かない。
+- 新しいシートの `_sheet.yml` の `ulid` は書かずに整形すれば付く（`pages.md`）。ほかの例の `ulid` を真似て手で書かない。
 - **値は CSV に書く。** 見た目は CSV に書かない（`_sheet.yml`）。
 
 ```csv
@@ -25,7 +25,7 @@
 ## 2. 見た目（`_sheet.yml`）
 
 ```yaml
-ulid: 01M5KG5J7B37NMAAHZVDN1EZ6B   # シートの固定 ID。今の時刻から生成する
+ulid: 01M5KG5J7B37NMAAHZVDN1EZ6B   # シートの固定 ID。新しいシートでは書かない（整形で付く）
 name: 予算                          # シートの名前（フォルダ名もこれから作る）
 tabs:                               # タブの並び順
   - name: 月別
@@ -33,7 +33,7 @@ tabs:                               # タブの並び順
     widths: { A: 80, B: 110 }       # 列の幅（px）
     merges: [ A14:B14 ]             # 結合
     styles:                         # 見た目。後に書いたものが勝つ
-      - { range: A1:E1, bold: true, bg: "#f1f1ef", align: center }
+      - { range: A1:E1, bold: true, bg: gray-1, align: center }
       - { range: B2:E8, format: "#,##0" }
     charts:                         # グラフ（下の 3）
       - { type: bar, range: A1:D7, title: 月別の費用, at: G2, width: 480, height: 300 }
@@ -44,7 +44,8 @@ tabs:                               # タブの並び順
 |---|---|
 | `range` | 範囲（`A1:C3`・`B2`。列全体は `B:B`、行全体は `2:2`） |
 | `bold` `italic` `underline` `strike` `wrap` | `true` のときだけ書く |
-| `color` `bg` | 文字の色・背景色。`#f1f1ef` のように 16 進数で書く（本文の色の名前とは違う） |
+| `color` | 文字の色。`gray` `brown` `orange` `yellow` `green` `blue` `purple` `pink` `red` のどれか（本文の色の名前と同じ）。書かなければ既定の文字の色 |
+| `bg` | 背景色。色の名前に段を付ける（`green-1` 薄い〜`green-4` 濃い）。段はライトモードでもダークモードでも「どれだけ目立つか」で、濃さで量を表すときは段を上げる。16 進数（`#rrggbb`）は書かない（読めるが、近い色に寄せられる） |
 | `align` | `left` `center` `right` |
 | `valign` | `top` `middle`（書かなければ下） |
 | `size` | 文字の大きさ（pt） |

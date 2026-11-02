@@ -7,10 +7,9 @@ DB の行・`_database.yml`・ページの中の DB の埋め込みを作る・�
 ## 1. DB と行
 
 - データベースは `databases/` の下にある。`_database.yml` があるフォルダが 1 つの DB で、中の `.md` が 1 行ずつ（行 = ページ）。
-- 新しい DB を作るときは、`_database.yml` の先頭に `ulid`（ULID）を書く。ULID は今の時刻から生成する（サイドバーは `ulid` の順、つまり作った順に並ぶ）。ほかの例の `ulid` を真似て手で書かない。
+- 新しい DB・行の `ulid` は書かずに整形すれば付く（`pages.md`。サイドバーは `ulid` の順、つまり作った順に並ぶ）。ほかの例の `ulid` を真似て手で書かない。
 - 行のファイル名・`ulid` の振り方は、ページと同じ（`pages.md`）。
 - `rank` はボードや手動の並び替えでの並び順。新しい行では省略してよい。
-- `_templates/` の中は行テンプレート。行を作るときに使ってよい。
 
 ## 2. `_database.yml`
 
@@ -51,6 +50,8 @@ view:                             # DB のページ（サイドバーから開�
 | `url` | `Figma: https://...` | |
 | `files` | `[{ name: 仕様書.pdf, url: https://media.markus.ink/... }]` | ファイルは Markus の Web でアップロードする |
 | `relation` | `先行タスク: [01M1C8S2..., 01M1EDEA...]` | 同じ DB の行の `ulid` の並び。`reverse_of: 先行タスク` を付けたプロパティは逆向きで、値は書かない |
+| `created_time` | 書かない | 作成日時。行の `ulid` の時刻が出る |
+| `created_by` | `作成者: ai:tanaka` | 作成者。新しい行を作るときだけ書く（人なら `handle`、あなたなら `ai:<人>`。AGENTS.md）。1 つだけで、並びにしない。前からある行の値は書き足さない・変えない |
 
 - 名前の列（`title`）はプロパティに書かない。
 - 選択肢は `{ name: …, color: … }`。色の名前は `pages.md` と同じ（`gray` `brown` `orange` `yellow` `green` `blue` `purple` `pink` `red`）。

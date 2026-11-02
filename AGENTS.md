@@ -1,6 +1,6 @@
 # AGENTS.md
 
-<!-- markus:begin v21 -->
+<!-- markus:begin v25 -->
 <!-- この印の間は Markus が書き換えます（Markus の規約）。変えないでください。決まりを足すときは、下の「このプロジェクトの決まり」に書いてください。 -->
 
 このリポジトリは **Markus** で管理されている仕様書リポジトリです。人は Markus の Web UI から編集し、AI エージェントはこのリポジトリを直接編集して push します。両方から同時に編集されるので、以下の規約を守ってください。下の「このプロジェクトの決まり」と食い違うときは、この規約を優先してください。
@@ -22,12 +22,13 @@
 
 | 書くもの | 書く前に読む |
 |---|---|
-| ページ（`docs/` の `.md`）・DB の行の本文 | `.markus/agents/pages.md` |
+| ページ（`docs/` の `.md`）・サイドページ（`sidepages/`）・DB の行の本文 | `.markus/agents/pages.md` |
 | DB の行のプロパティ・`_database.yml`・ページの中の DB の埋め込み | `.markus/agents/databases.md` |
 | シートの CSV・`_sheet.yml`・ページの中のシートの埋め込み | `.markus/agents/sheets.md` |
 | コメントの返信・解決・新しいスレッド。本文を書き換えてコメントの対象が変わったとき | `.markus/agents/comments.md` |
 
-- `.md` を書き終えたら、書き換えたファイルを渡して `node .markus/fmt.mjs <ファイル>…` を実行し、出た所を直す（`pages.md`）。
+- 書き終えたら、書き換えたファイル（`.md`・`_database.yml`・`_sheet.yml`）を渡して `node .markus/fmt.mjs <ファイル>…` を実行し、出た所を直す（`pages.md`）。`ulid` が無ければ付く。
+- コメント・DB の作成者に AI（あなた）を書くときは `ai:<人>`。`<人>` は `.git/markus-user` の中身（無ければ `git config user.name`）。どの AI かは書かない。
 - `.markus/config.yml` と `.markus/members.yml` は、頼まれたとき以外は変更しない。
 
 ## 3. 読み方
@@ -35,12 +36,14 @@
 | 場所 | 中身 |
 |---|---|
 | `docs/` | ページ（`.md`）。フォルダはディレクトリ。タイトルは frontmatter の `title` |
+| `sidepages/` | サイドページ（ページの中のページ。サイドバーには出ない）。親は ` ```markus-page ` に `ulid: <サイドページの ulid>` を書いたページ |
 | `databases/` | データベース。`_database.yml` があるフォルダが 1 つの DB で、中の `.md` が 1 行ずつ。行のプロパティは frontmatter |
 | `sheets/` | シート（表計算）。`_sheet.yml` があるフォルダが 1 つのシートで、タブごとに 1 つの CSV |
+| `.markus/templates/` | テンプレート。1 ファイルが 1 つで、ファイル名が名前、中身は差し込む本文だけ（frontmatter は付けない）。人が「/テンプレート」でページや行の途中に差し込む。ページや行を書くときに合うものがあれば、その形で書く |
 | `.markus/comments/` | コメント。`<ページの ulid>/<スレッドの ulid>.md` が 1 スレッドで、未解決は `status: open` |
 | `.markus/members.yml` | メンバーの `handle` と名前（DB の人の値は `handle`） |
 
-- 内部リンクは `[タイトル](markus:<ulid>)`。リンク先は `grep -rl "ulid: <ulid>" docs/ databases/ sheets/` で探す（DB・シートなら `_database.yml`・`_sheet.yml` が見つかる）。
+- 内部リンクは `[タイトル](markus:<ulid>)`。リンク先は `grep -rl "ulid: <ulid>" docs/ databases/ sheets/ sidepages/` で探す（DB・シートなら `_database.yml`・`_sheet.yml` が見つかる）。サイドページの親も同じ grep で探す（出てきたファイルから、サイドページ自身を除いたものが親）。
 - 画像・PDF は `https://media.markus.ink/...` の URL で置いてある。見るときは URL から一時ディレクトリに保存して読み込む（例: `curl -sSo /tmp/login.png <URL>`。取得したファイルはコミットしない）。動画は `poster` の画像を見て、必要なら `ffmpeg` でフレームを切り出して見る。YouTube の動画（`<iframe>`）・ブックマーク（`<bookmark>`）は、`title` を読めば何かが分かる。
 - Markus の Web から保存されたコミットは、author が Markus の App（bot）になる。実際に変更した人は、コミットメッセージの `Markus-User:` trailer で確かめる（`git blame` で bot と出た行も同じ）。
 

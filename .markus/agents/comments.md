@@ -26,7 +26,7 @@ anchor:
 ### suzuki · 2026-11-02T10:15+09:00
 有効期限は 24 時間で合っていますか？
 
-### ai:claude-code · 2026-11-02T11:03+09:00
+### ai:tanaka · 2026-11-02T11:03+09:00
 実装（`src/auth/reset.ts`）では 1 時間になっています。仕様を 1 時間に直しますか？
 ```
 
@@ -35,7 +35,7 @@ anchor:
 | `ulid` | スレッドの固定 ID（ファイル名と同じ） |
 | `page` | 対象のページ（DB の行も）の `ulid` |
 | `status` | `open`（未解決）・`resolved`（解決） |
-| `created_by`・`resolved_by` | 始めた人・解決した人。人は `handle`、AI は `ai:<エージェント名>`（`ai:claude-code`・`ai:codex`）。`resolved_by` は解決しているときだけ |
+| `created_by`・`resolved_by` | 始めた人・解決した人。人は `handle`、AI は `ai:<人>`（`ai:tanaka`。`<人>` は `.git/markus-user` の中身、無ければ `git config user.name`）。`resolved_by` は解決しているときだけ |
 | `original_quote` | 投稿したときの対象の文。後から変えない |
 | `anchor` | 今の本文で対象を探す手がかり（下の表） |
 
@@ -73,9 +73,9 @@ anchor:
 
 ## 3. 返信・解決
 
-- 返信はファイルの末尾に `### ai:<エージェント名> · <日時>` の見出しで追記する（例: `### ai:claude-code · 2026-10-19T10:00+09:00`）。本文は Markdown で、ページへのリンクは `[タイトル](markus:<ulid>)`。
+- 返信はファイルの末尾に `### ai:<人> · <日時>` の見出しで追記する（例: `### ai:tanaka · 2026-10-19T10:00+09:00`）。本文は Markdown で、ページへのリンクは `[タイトル](markus:<ulid>)`。
 - 人のコメント（見出しが `ai:` で始まらないもの）は編集・削除しない。
-- 解決してよいか分からないときは `status` を変えない。解決するときは `status: resolved` と `resolved_by: ai:<エージェント名>` を書く。ファイルは消さない。
+- 解決してよいか分からないときは `status` を変えない。解決するときは `status: resolved` と `resolved_by: ai:<人>` を書く。ファイルは消さない。
 
 ## 4. 本文を書き換えたとき
 
@@ -84,5 +84,5 @@ anchor:
 
 ## 5. 新しいスレッド
 
-- スレッドの ulid を今の時刻から生成し、ファイル名（`.markus/comments/<ページの ulid>/<スレッドの ulid>.md`）と `ulid` にする。
-- 上の 1 の形で、`page`・`status: open`・`created_by: ai:<エージェント名>` と、対象に合わせて `original_quote`・`anchor`（上の 2）を書く。その下に、最初のコメントを `### ai:<エージェント名> · <日時>` の見出しで書く。
+- スレッドの ulid を `node .markus/fmt.mjs --ulid` で作り、ファイル名（`.markus/comments/<ページの ulid>/<スレッドの ulid>.md`）と `ulid` にする。
+- 上の 1 の形で、`page`・`status: open`・`created_by: ai:<人>` と、対象に合わせて `original_quote`・`anchor`（上の 2）を書く。その下に、最初のコメントを `### ai:<人> · <日時>` の見出しで書く。書き終えたら整形ツールにファイルを渡す（`pages.md`）。
