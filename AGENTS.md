@@ -1,6 +1,6 @@
 # AGENTS.md
 
-<!-- markus:begin v25 -->
+<!-- markus:begin v26 -->
 <!-- この印の間は Markus が書き換えます（Markus の規約）。変えないでください。決まりを足すときは、下の「このプロジェクトの決まり」に書いてください。 -->
 
 このリポジトリは **Markus** で管理されている仕様書リポジトリです。人は Markus の Web UI から編集し、AI エージェントはこのリポジトリを直接編集して push します。両方から同時に編集されるので、以下の規約を守ってください。下の「このプロジェクトの決まり」と食い違うときは、この規約を優先してください。
@@ -44,7 +44,10 @@
 | `.markus/members.yml` | メンバーの `handle` と名前（DB の人の値は `handle`） |
 
 - 内部リンクは `[タイトル](markus:<ulid>)`。リンク先は `grep -rl "ulid: <ulid>" docs/ databases/ sheets/ sidepages/` で探す（DB・シートなら `_database.yml`・`_sheet.yml` が見つかる）。サイドページの親も同じ grep で探す（出てきたファイルから、サイドページ自身を除いたものが親）。
-- 画像・PDF は `https://media.markus.ink/...` の URL で置いてある。見るときは URL から一時ディレクトリに保存して読み込む（例: `curl -sSo /tmp/login.png <URL>`。取得したファイルはコミットしない）。動画は `poster` の画像を見て、必要なら `ffmpeg` でフレームを切り出して見る。YouTube の動画（`<iframe>`）・ブックマーク（`<bookmark>`）は、`title` を読めば何かが分かる。
+- 画像・動画・PDF は `https://media.markus.ink/...` の URL で置いてある。プロジェクトのメンバーしか見られないので、`curl` では取れない。`node .markus/media.mjs <URL>…` で一時ディレクトリに保存し、出たパスを読み込む（取得したファイルはコミットしない）。
+  - 初めてのときや連携が切れたときは、開く URL とコードが出て止まる（終了コード 2）。その文をそのまま人に伝え、「許可した」と言われたら同じコマンドをもう一度実行する。自分でブラウザを開いて許可しない。
+  - ほかのサイトの URL は、このスクリプトでは取らない（`curl` などで取る）。
+  - 動画は `poster` の画像を見て、必要なら `ffmpeg` でフレームを切り出して見る。YouTube の動画（`<iframe>`）・ブックマーク（`<bookmark>`）は、`title` を読めば何かが分かる。
 - Markus の Web から保存されたコミットは、author が Markus の App（bot）になる。実際に変更した人は、コミットメッセージの `Markus-User:` trailer で確かめる（`git blame` で bot と出た行も同じ）。
 
 ### 人から場所を渡されたとき
