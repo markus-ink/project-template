@@ -1,23 +1,14 @@
-ulid: 01M5TXV12F8CEY8JXPDSD65JYY
 name: タスク
-key_prefix: TASK
 properties:
   ステータス:
     type: status
     options:
-      - { name: 未着手,   color: gray }
-      - { name: 進行中,   color: blue }
-      - { name: レビュー, color: yellow }
-      - { name: 完了,     color: green }
+      - { name: 未着手, color: gray }
+      - { name: 進行中, color: blue }
+      - { name: 完了, color: green }
     default: 未着手
-  担当者:  { type: person }
-  優先度:
+  セレクト:
     type: select
-    options:
-      - { name: 高, color: red }
-      - { name: 中, color: orange }
-      - { name: 低, color: gray }
-  ラベル:  { type: multi_select }
-  開始日:  { type: date }
-  期限:    { type: date }
-  見積(h): { type: number }
+    options: [{ name: 高, color: red }, { name: 中, color: yellow }, { name: 低, color: green }]
+  作成者: { type: created_by }
+  作成日時: { type: created_time }
