@@ -16,7 +16,7 @@ DB の行・`_database.yml`・ページの中の DB の埋め込みを作る・�
 ```yaml
 ulid: 01JB9DB0...                 # データベースの固定 ID。今の時刻から生成する
 name: タスク                       # DB の名前（フォルダ名もこれから作る）
-key_prefix: MK                    # 行に連番の key（MK-12）を振るときだけ
+key_prefix: TSK                   # ID のある DB だけ。行に連番の key（TSK-12）を振る。"" なら番号だけ（12）
 properties:                       # 並びが表の列の順になる
   ステータス:
     type: status
@@ -51,7 +51,7 @@ view:                             # DB のページ（サイドバーから開�
 | `files` | `[{ name: 仕様書.pdf, url: https://media.markus.ink/... }]` | ファイルは Markus の Web でアップロードする |
 | `relation` | `先行タスク: [01M1C8S2..., 01M1EDEA...]` | 同じ DB の行の `ulid` の並び。`reverse_of: 先行タスク` を付けたプロパティは逆向きで、値は書かない |
 | `created_time` | 書かない | 作成日時。行の `ulid` の時刻が出る |
-| `created_by` | `作成者: ai:tanaka` | 作成者。新しい行を作るときだけ書く（人なら `handle`、あなたなら `ai:<人>`。AGENTS.md）。1 つだけで、並びにしない。前からある行の値は書き足さない・変えない |
+| `created_by` | 書かない | 作成者。行の `created_by` が出る。プロパティの名前で値を書かない |
 
 - 名前の列（`title`）はプロパティに書かない。
 - 選択肢は `{ name: …, color: … }`。色の名前は `pages.md` と同じ（`gray` `brown` `orange` `yellow` `green` `blue` `purple` `pink` `red`）。
@@ -61,12 +61,14 @@ view:                             # DB のページ（サイドバーから開�
 ## 3. プロパティ（行の frontmatter）
 
 - 行のプロパティは frontmatter に書く。型と選択肢は `_database.yml` の `properties` に従う。
+- どの DB の行にも、作った人の `created_by` がある。新しい行は書かなくても整形ツールが `ai:<人>`（AGENTS.md）を付ける。前からある行の値は書き足さない・変えない。
 
 ```yaml
 ---
 ulid: 01M48B22602GPH7G5Q4D8DJ83J
 title: ログイン API を実装する
-key: MK-3
+key: TSK-3                    # 整形ツールが付ける（書かない）
+created_by: ai:tanaka         # 整形ツールが付ける（書かない）
 ステータス: 進行中
 担当者: tanaka
 優先度: 高
@@ -78,7 +80,12 @@ key: MK-3
 - プロパティと選択肢は、`_database.yml` にある名前（`ステータス: 進行中`）をそのまま書く。画面にも同じ名前が出る。英語のキーに直したり、別の言い方にしたりしない。
 - 名前を変えるときは、Markus の Web で変える（行・テンプレート・ビュー・その DB を表示しているページのブロックも一緒に書き換わる）。手で変えるなら、それらをすべて同じコミットで書き換える。
 - 値の書き方は、上の 2 の型の表のとおり。人を指す値は `.markus/members.yml` の `handle` を使う（メールアドレスは書かない）。
-- `key_prefix` がある DB では、新しい行の `key` を「その DB 内の最大番号 + 1」にする（例: `MK-7`）。
+- `key_prefix` がある DB では、新しい行に `key` を書かない。整形ツールが次の番号を付け、同じフォルダの `_counter.yml`（`next: 8`）を増やす。番号を自分で決めない・`_counter.yml` を手で書き換えない。
+  - 書き換わった `_counter.yml` も、行と同じコミットに入れる。
+  - `git pull` で `_counter.yml` がぶつかったら、ほかの人の `_counter.yml` を取り、自分が作った行の `key` の行を消して、整形をかけ直す。
+  - Web と同期している間は、`_counter.yml` が元に戻る。それでよい（Web で保存するときに、新しい行の番号は振り直される）。
+  - 整形ツールが `key` の重複を出したら、後から作った行の `key` の行を消して、整形をかけ直す。
+  - ID を足す・`key_prefix` を変えるのは Web でする（全部の行の `key` が一緒に変わるため）。
 
 ## 4. ビューと埋め込み
 
