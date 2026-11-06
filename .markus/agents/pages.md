@@ -154,6 +154,7 @@ tab: 月別
 
 - 画像・動画・PDF はリポジトリに置かない。Markus の Web でアップロードした URL（`https://media.markus.ink/...`）を使う。
 - 画像の代替テキストには、画像の内容を文章で書く。GIF は最初のコマしか見えないので、動きも文章で書く。
+- `data-figma` の付いた `<img>` は Figma ブロック。AI からは作らない（人が Figma のプラグインで書き出した zip を Web で置く）。動かすときは `data-figma` も一緒に動かし、消さない（消すとふつうの画像になり、レイヤーを見られなくなる）。
 - 動画は `<video>` で置く（`title` はキャプション）。YouTube の動画は `<iframe src="https://www.youtube.com/embed/<ID>">`（始める位置は `?start=<秒>`）。YouTube のほかの `<iframe>` は書かない。
 - リンク先をカードで見せるときは `<bookmark href="<URL>" title="<タイトル>"></bookmark>`。`description`（説明）・`image`（サムネイルの URL）・`icon`（アイコンの URL）は分かれば書く。属性の値の「"」は `&quot;`、「&」は `&amp;`、改行は書かない。
 - `<iframe>`・`<bookmark>` は、行の頭に 1 行で、前後に空の行を空けて書く。
