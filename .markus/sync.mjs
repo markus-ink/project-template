@@ -72,5 +72,8 @@ if (syncing()) {
 } else {
   const r = git("pull", "--rebase", "--autostash");
   if (!r.ok) stop(`${inProgress() ? "rebase が衝突で止まっています。衝突を直して git rebase --continue してください。" : "git pull ができませんでした。何も変えていません。"}\n${r.output}`);
+  // 書きかけを戻すときの衝突では、pull は成功を返す（ファイルに衝突の印が残り、書きかけは stash に残る）
+  const conflicts = must("diff", "--name-only", "--diff-filter=U", "-z").split("\0").filter(Boolean);
+  if (conflicts.length) stop(`最新にしましたが、書きかけの変更を戻すときに衝突しました。書きかけは git stash に残っています。次のファイルの衝突の印を直して、git reset と git stash drop をしてください。\n${conflicts.join("\n")}`);
   console.log(`最新にしました（${must("rev-parse", "--short", "HEAD")}）。`);
 }
