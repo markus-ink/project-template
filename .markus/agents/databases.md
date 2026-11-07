@@ -48,7 +48,7 @@ view:                             # The view of the database page (the full page
 | `person` | `Assignee: alex`, `[alex, sam]` | A `handle` from `.markus/members.yml` |
 | `checkbox` | `Approved: true` | |
 | `url` | `Figma: https://...` | |
-| `files` | `[{ name: spec.pdf, url: https://media.markus.ink/... }]` | Files are uploaded on the Markus web |
+| `files` | `[{ name: spec.pdf, url: https://media.markus.ink/... }]` | Upload files on the Markus web or with `node .markus/media.mjs upload <file>`, and write the URL it prints in `url` |
 | `relation` | `Blocked by: [01M1C8S2..., 01M1EDEA...]` | A list of `ulid`s of rows in the same database. A property with `reverse_of: Blocked by` is the reverse direction; don't write its value |
 | `created_time` | Don't write it | Created time. Shows the time of the row's `ulid` |
 | `created_by` | Don't write it | Created by. Shows the row's `created_by`. Don't write a value under the property's name |

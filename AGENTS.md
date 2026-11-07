@@ -1,6 +1,6 @@
 # AGENTS.md
 
-<!-- markus:begin v36 -->
+<!-- markus:begin v37 -->
 <!-- Markus rewrites everything between these markers (Markus rules). Do not change it. To add rules, write them under "Project rules" below. -->
 
 This repository is a spec repository managed by **Markus**. People edit it from the Markus web UI, and AI agents edit this repository directly and push. Because it is edited from both sides at the same time, follow the rules below. If they conflict with "Project rules" below, these rules take precedence.
@@ -51,6 +51,7 @@ Before you create or change a file, always read the file below. If you write wit
   - Don't use this script for URLs on other sites (fetch them with `curl` or similar).
   - An image with `data-figma` is a Figma frame (a Figma block). The image is enough to see what the screen looks like. Only when you need exact values (spacing, colors, text styles, components, etc.), also fetch the `data-figma` URL with the same script. `spec.json` in the zip is the layer tree (coordinates are from the frame's top-left; it is large, so search for the layers you need), and `assets/` has the original icon and image files.
   - For videos, look at the `poster` image, and if needed, extract frames with `ffmpeg`. For YouTube videos (`<iframe>`) and bookmarks (`<bookmark>`), read the `title` to see what they are.
+- To put an image, video, or PDF on a page, upload it to Markus with `node .markus/media.mjs upload <file>…` and write the URL it prints (one line per file) on the page (see `pages.md` for how. Don't add the file to the repository). Only devices of people with the Editor role or higher in this project can upload. If it prints a linking code, pass it to a person, the same as when fetching.
 - Commits saved from the Markus web have the Markus App (a bot) as the author. Check who actually made the change with the `Markus-User:` trailer in the commit message (the same applies to lines that `git blame` attributes to the bot).
 
 ### When someone gives you a location

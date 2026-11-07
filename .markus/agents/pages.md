@@ -152,7 +152,7 @@ The following 7 mistakes are not caught by the formatter afterwards (they become
 
 ## 3. Images, videos, and PDFs
 
-- Don't put images, videos, or PDFs in the repository. Use URLs uploaded on the Markus web (`https://media.markus.ink/...`).
+- Don't put images, videos, or PDFs in the repository. Use URLs uploaded to Markus (`https://media.markus.ink/...`). To upload one as an AI, run `node .markus/media.mjs upload <file>…` and write the URL it prints as `![alt text](URL)`, `<video src="URL" title="...">`, or `<embed src="URL" type="application/pdf" title="file name">`.
 - In an image's alt text, describe what the image shows in sentences. Only the first frame of a GIF is visible, so describe the motion in words too.
 - An `<img>` with `data-figma` is a Figma block. Don't create one as an AI (people place the zip exported with the Figma plugin on the web). When you move one, move `data-figma` with it and don't delete it (without it, the block becomes a plain image and the layers can no longer be viewed).
 - Place videos with `<video>` (`title` is the caption). For YouTube videos, use `<iframe src="https://www.youtube.com/embed/<ID>">` (start position with `?start=<seconds>`). Don't write any other `<iframe>`.

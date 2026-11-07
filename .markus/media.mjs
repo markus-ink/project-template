@@ -1,17 +1,25 @@
 #!/usr/bin/env node
-// Markus に置いた画像・動画・PDF を取る（Markus が配る。書き換えないでください）。
-//   node .markus/media.mjs <URL>…
-// 一時ディレクトリに保存して、保存した場所を 1 行ずつ出す。
+// Markus に置いた画像・動画・PDF を取る・置く（Markus が配る。書き換えないでください）。
+//   node .markus/media.mjs <URL>…            一時ディレクトリに保存して、保存した場所を 1 行ずつ出す。
+//   node .markus/media.mjs upload <ファイル>…  この clone の Markus のプロジェクトに置いて、URL を 1 行ずつ出す（ページには自分で書く）。
 // 画像は Markus のプロジェクトのメンバーしか見られないので、初めてのときはこの端末を Markus に連携する。
 // そのときは開く URL とコードを出して止まる（終了コード 2）。人に伝え、Markus で「許可」を押してもらってから、同じコマンドをもう一度実行する。
 // トークンは ~/.config/markus/ に置き、Markus のメディアの URL（media.markus.ink）にだけ付ける。
+// 置くには、そのプロジェクトの Editor 以上のロールが要る。どのプロジェクトかは、この clone の GitHub のリポジトリ（git remote）で決める。
 
+import { spawnSync } from "node:child_process";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 
 const HOSTS = new Set(["media.markus.ink", "media-dev.markus.ink"]);
+/** 置く先。Markus が配るときに、このプロジェクトの Markus のもの（開発なら media-dev.markus.ink）に書き換える */
+const UPLOAD_ORIGIN = "https://media.markus.ink";
+/** 1 ファイルの上限（種類ごとの上限は Markus が確かめる） */
+const MAX_UPLOAD = 20 * 1024 * 1024;
 const NEEDS_APPROVAL = 2;
+const root = fileURLToPath(new URL("..", import.meta.url));
 
 const configDir = path.join(process.env.XDG_CONFIG_HOME || path.join(os.homedir(), ".config"), "markus");
 const outDir = path.join(os.tmpdir(), "markus-media");
@@ -60,7 +68,14 @@ const MESSAGES = {
     notFound: (raw) => `Not found (it was deleted, or the URL is wrong): ${raw}`,
     failed: (status, message, raw) => `Can't fetch it (${status} ${message}): ${raw}`,
     stillUnauthorized: (raw) => `Can't fetch it (still can't read it after linking again): ${raw}`,
-    usage: "Usage: node .markus/media.mjs <URL>…",
+    usage: "Usage: node .markus/media.mjs <URL>…  (fetch)\n       node .markus/media.mjs upload <file>…  (upload)",
+    noFile: (file) => `File not found: ${file}`,
+    tooLarge: (file) => `Too large (up to 20MB): ${file}`,
+    noRepo: "Can't tell which Markus project this is: this clone has no GitHub remote (git remote -v)",
+    notProject: (repo) => `${repo} isn't a Markus project you're a member of. Ask a person to check the project and that they linked the device with their own account`,
+    roleRequired: "Uploading requires the Editor role or higher in this project. Ask a person",
+    uploadFailed: (status, message, file) => `Can't upload it (${status} ${message}): ${file}`,
+    stillUnauthorizedUpload: (file) => `Can't upload it (still rejected after linking again): ${file}`,
   },
   ja: {
     timeLocale: "ja-JP",
@@ -82,7 +97,14 @@ const MESSAGES = {
     notFound: (raw) => `見つかりません（消されたか、URL が違います）: ${raw}`,
     failed: (status, message, raw) => `取れません（${status} ${message}）: ${raw}`,
     stillUnauthorized: (raw) => `取れません（連携し直しても読めません）: ${raw}`,
-    usage: "使い方: node .markus/media.mjs <URL>…",
+    usage: "使い方: node .markus/media.mjs <URL>…（取る）\n       node .markus/media.mjs upload <ファイル>…（置く）",
+    noFile: (file) => `ファイルがありません: ${file}`,
+    tooLarge: (file) => `大きすぎます（20MB まで）: ${file}`,
+    noRepo: "どの Markus のプロジェクトか分かりません。この clone に GitHub のリモートがありません（git remote -v）",
+    notProject: (repo) => `${repo} は、あなたが入っている Markus のプロジェクトではありません。プロジェクトと、連携した人のアカウントが合っているか、人に確かめてください`,
+    roleRequired: "置くには、このプロジェクトの Editor 以上のロールが要ります。人に聞いてください",
+    uploadFailed: (status, message, file) => `置けません（${status} ${message}）: ${file}`,
+    stillUnauthorizedUpload: (file) => `置けません（連携し直しても断られます）: ${file}`,
   },
 };
 const t = MESSAGES[language()];
@@ -171,15 +193,125 @@ async function fetchOne(raw) {
   throw new Error(t.stillUnauthorized(raw));
 }
 
-const urls = process.argv.slice(2);
-if (!urls.length) {
+/** この clone の GitHub のリポジトリ（owner/repo）。origin を先に見る */
+function githubRepo() {
+  const out = spawnSync("git", ["-C", root, "remote", "-v"], { encoding: "utf8" });
+  const remotes = (out.stdout ?? "")
+    .split("\n")
+    .map((line) => line.split(/\s+/))
+    .filter(([name, url]) => name && url)
+    .sort(([a], [b]) => (b === "origin") - (a === "origin"));
+  for (const [, url] of remotes) {
+    const m = /github\.com[:/]+([A-Za-z0-9_.-]+)\/([A-Za-z0-9_.-]+?)(?:\.git)?\/?$/.exec(url);
+    if (m) return `${m[1]}/${m[2]}`;
+  }
+  throw new Error(t.noRepo);
+}
+
+/**
+ * JPEG の撮った場所などのメタデータ（Exif・XMP の APP1、IPTC の APP13）を外す。Markus の Web がアップロードの前に書き直すのと同じ目的（08「ブラウザでの下ごしらえ」）。
+ * 向き（Orientation）だけは、外すと写真が横に倒れるので、それだけの Exif を入れ直す。JPEG でなければそのまま
+ */
+function stripJpegMetadata(b) {
+  if (b[0] !== 0xff || b[1] !== 0xd8) return b;
+  const parts = [b.subarray(0, 2)];
+  let orientation = 1;
+  let i = 2;
+  while (i + 4 <= b.length && b[i] === 0xff) {
+    const marker = b[i + 1];
+    if (marker === 0xff) {
+      i += 1;
+      continue;
+    }
+    // ここから後は画像のデータ
+    if (marker === 0xda) break;
+    const end = i + 2 + ((b[i + 2] << 8) | b[i + 3]);
+    if (end > b.length) return b;
+    const segment = b.subarray(i, end);
+    if (marker === 0xe1) orientation = exifOrientation(segment.subarray(4)) ?? orientation;
+    else if (marker !== 0xed) parts.push(segment);
+    i = end;
+  }
+  if (orientation !== 1) parts.splice(parts[1]?.[1] === 0xe0 ? 2 : 1, 0, orientationSegment(orientation));
+  parts.push(b.subarray(i));
+  return Buffer.concat(parts);
+}
+
+/** Exif の APP1 の中身（"Exif\0\0" から）の Orientation。無ければ null */
+function exifOrientation(data) {
+  if (data.length < 14 || data.toString("latin1", 0, 6) !== "Exif\0\0") return null;
+  const tiff = data.subarray(6);
+  const le = tiff.toString("latin1", 0, 2) === "II";
+  const u16 = (o) => (le ? tiff.readUInt16LE(o) : tiff.readUInt16BE(o));
+  const u32 = (o) => (le ? tiff.readUInt32LE(o) : tiff.readUInt32BE(o));
+  try {
+    const ifd = u32(4);
+    for (let n = 0, count = u16(ifd); n < count; n++) {
+      const entry = ifd + 2 + n * 12;
+      if (u16(entry) === 0x0112) {
+        const v = u16(entry + 8);
+        return v >= 1 && v <= 8 ? v : null;
+      }
+    }
+  } catch {
+    // 壊れた Exif は、向きが無いのと同じ
+  }
+  return null;
+}
+
+/** Orientation だけの Exif の APP1 */
+function orientationSegment(orientation) {
+  const body = Buffer.concat([
+    Buffer.from("Exif\0\0", "latin1"),
+    Buffer.from([0x49, 0x49, 0x2a, 0x00, 8, 0, 0, 0, 1, 0, 0x12, 0x01, 3, 0, 1, 0, 0, 0, orientation, 0, 0, 0, 0, 0, 0, 0]),
+  ]);
+  return Buffer.concat([Buffer.from([0xff, 0xe1, (body.length + 2) >> 8, (body.length + 2) & 0xff]), body]);
+}
+
+let repo;
+
+async function uploadOne(file) {
+  const stat = fs.statSync(file, { throwIfNoEntry: false });
+  if (!stat?.isFile()) throw new Error(t.noFile(file));
+  if (stat.size > MAX_UPLOAD) throw new Error(t.tooLarge(file));
+  const bytes = stripJpegMetadata(fs.readFileSync(file));
+  repo ??= githubRepo();
+  const origin = UPLOAD_ORIGIN;
+  const host = new URL(origin).hostname;
+
+  for (let attempt = 0; attempt < 2; attempt++) {
+    const token = await tokenFor(origin, host);
+    const res = await fetch(`${origin}/api/media?repo=${encodeURIComponent(repo)}`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/octet-stream", "X-File-Name": encodeURIComponent(path.basename(file)) },
+      body: bytes,
+      redirect: "error",
+    });
+    const json = await res.json().catch(() => ({}));
+    if (res.ok && json.url) return json.url;
+    // 期限が切れた・解除された。捨てて連携し直す
+    if (res.status === 401) {
+      remove(tokenFile(host));
+      continue;
+    }
+    if (json.code === "repo_not_project") throw new Error(t.notProject(repo));
+    if (json.code === "role_required") throw new Error(t.roleRequired);
+    throw new Error(t.uploadFailed(res.status, json.error ?? "", file));
+  }
+  throw new Error(t.stillUnauthorizedUpload(file));
+}
+
+const args = process.argv.slice(2);
+const upload = args[0] === "upload";
+const targets = upload ? args.slice(1) : args;
+if (!targets.length) {
   console.error(t.usage);
   process.exit(1);
 }
 let failed = false;
-for (const raw of urls) {
+for (const target of targets) {
   try {
-    console.log(await fetchOne(raw));
+    console.log(await (upload ? uploadOne(target) : fetchOne(target)));
   } catch (e) {
     if (e instanceof NeedsApproval) {
       console.log(e.message);
