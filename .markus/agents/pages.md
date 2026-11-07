@@ -1,62 +1,62 @@
-# ページを書く
+# Writing pages
 
-このファイルは Markus が書き換えます（Markus の規約）。変えないでください。決まりを足すときは、AGENTS.md の「このプロジェクトの決まり」に書いてください。
+Markus rewrites this file (Markus rules). Do not change it. To add rules, write them under "Project rules" in AGENTS.md.
 
-ページ（`docs/` の `.md`）・サイドページ（`sidepages/` の `.md`）や DB の行の本文を作る・書き換えるときの決まりです。
+These are the rules for creating or changing pages (`.md` in `docs/`), side pages (`.md` in `sidepages/`), and the body of database rows.
 
-## 1. ページのファイル
+## 1. Page files
 
-- ページは `.md` ファイル。フォルダはディレクトリ。
-- ページは必ず `docs/` の下に置く。`docs/` の外に置いた `.md` は Markus の Web に出ない。
-- ファイル名はページタイトルから作る。正式なタイトルは frontmatter の `title`。
-  - ファイル名に使えない文字 `/ \ : * ? " < > |` は全角にする（`/` → `／`）。長さはタイトルの先頭 50 文字まで。同じフォルダに同じ名前があれば「 2」を付ける（`無題 2.md`）。
-- frontmatter は `ulid`・`title`（必須）と `rank`（任意）だけ。通常のページにほかのプロパティは付けない（プロパティを持つのは DB の行だけ）。
+- A page is a `.md` file. Folders are directories.
+- Always put pages under `docs/`. A `.md` placed outside `docs/` doesn't appear on the Markus web.
+- The file name is made from the page title. The real title is `title` in the frontmatter.
+  - Replace characters that can't be used in file names, `/ \ : * ? " < > |`, with their full-width forms (`/` → `／`). Use at most the first 50 characters of the title. If the same name already exists in the folder, add " 2" (`Untitled 2.md`).
+- The frontmatter has only `ulid`, `title` (required), and `rank` (optional). Don't add other properties to regular pages (only database rows have properties).
 
 ```yaml
 ---
-ulid: 01JB8Z6Q3K4M5N6P7R8S9T0V1W   # ULID（Markus がページを見分ける内部の ID。先頭が作った時刻）。新しいページでは書かなくてよい（整形で付く）
-title: ログイン機能
+ulid: 01JB8Z6Q3K4M5N6P7R8S9T0V1W   # ULID (the internal ID Markus uses to identify the page; it starts with the creation time). You don't need to write it for a new page (formatting adds it)
+title: Login
 ---
 ```
 
-- 既存の `ulid` は変えない。コピーして新しいページを作ったときは、`ulid` の行を消して整形する（新しい `ulid` が付く）。ほかの例の `ulid` を真似て手で書かない（時刻がでたらめになる）。
-- 整形の前に ULID が要るとき（リンク先にするなど）は、`node .markus/fmt.mjs --ulid` で作る。
-- 知らないキーがあっても消さない・並び替えない。
-- 本文の先頭にタイトルの見出し（`# タイトル`）は書かない。タイトルは `title` だけに持つ。
-- `rank` は同じフォルダの中での並び順。新しいページでは省略してよい（タイトル順になる）。
-- フォルダの並び順は、そのフォルダの `_folder.yml` の `rank`。新しいフォルダでは作らなくてよい。
-- 内部リンクはリンク先の `ulid` で書く: `[パスワード再設定](markus:01M40K9K80H877GNPBH4V44450)`。表示文字列はリンク先のタイトルにする。
+- Don't change an existing `ulid`. When you create a new page by copying one, delete the `ulid` line and run the formatter (a new `ulid` is added). Don't write one by hand by imitating another example's `ulid` (the time would be wrong).
+- If you need a ULID before formatting (for example, to link to the page), create one with `node .markus/fmt.mjs --ulid`.
+- Don't delete or reorder keys you don't know.
+- Don't write the title as a heading at the top of the body (`# Title`). The title lives only in `title`.
+- `rank` is the order within the same folder. You may omit it for new pages (they are sorted by title).
+- A folder's order is the `rank` in that folder's `_folder.yml`. You don't need to create it for a new folder.
+- Write internal links with the target's `ulid`: `[Password reset](markus:01M40K9K80H877GNPBH4V44450)`. Use the target's title as the link text.
 
-### サイドページ
+### Side pages
 
-- ページの中に置くページ。サイドバーには出ない。人に「ページの中にページを作って」と頼まれたら、サイドページにする。
-- ファイルは `sidepages/<タイトル>.md`（親ごとのフォルダは作らない）。frontmatter はページと同じ `ulid`・`title`。ファイル名の決まりもページと同じ。
-- 親のページの本文の置きたい所に、次のブロックを書く。1 つのサイドページを指すブロックはリポジトリ全体で 1 つだけ。別の所にも置きたいときは、サイドページをコピーして新しい `ulid` を振り、そのブロックを書く。
+- A page placed inside a page. It doesn't appear in the sidebar. When someone asks you to "create a page inside a page", make it a side page.
+- The file is `sidepages/<title>.md` (don't create a folder per parent). The frontmatter is the same as a page: `ulid` and `title`. File names follow the same rules as pages.
+- In the parent page's body, write the following block where you want it. Only one block in the whole repository may point to a given side page. To place it somewhere else too, copy the side page, give it a new `ulid`, and write a block for the copy.
 
 ```markus-page
 ulid: 01JC2M4N6P8R0S2T4V6W8X0Y2Z
 ```
 
-- サイドページの中にもサイドページを置ける（それも `sidepages/` の直下）。
-- サイドページを消すときは、ファイルとブロックの両方を消す。ブロックだけ消すと、ファイルが残る。
+- Side pages can contain side pages (those also go directly under `sidepages/`).
+- To delete a side page, delete both the file and the block. If you delete only the block, the file remains.
 
-## 2. 本文の記法
+## 2. Body syntax
 
-GFM を基本に、次の Markus の記法を使う。ここに無いタグや記法は作らない（Markus で開くと文字のまま出たり、消えたりする）。書き方に迷ったら、Markus の Web で保存されたページ（コミットの author が Markus の App のもの）の書き方を真似る。
+Use GFM as the base, plus the Markus syntax below. Don't invent tags or syntax that aren't listed here (Markus shows them as plain text or drops them). If you're unsure how to write something, imitate pages saved from the Markus web (commits whose author is the Markus App).
 
 ````markdown
-パスワードは<span color="red">8 文字以上</span>にする。<span color="yellow_bg">背景色</span>も付けられる。
+Passwords must be <span color="red">at least 8 characters</span>. You can also add a <span color="yellow_bg">background color</span>.
 
 <callout icon="⚠️" color="yellow_bg">
 
-**注意**: 中に Markdown を書くときは、開始タグの後と終了タグの前に空行を入れる。
+**Note**: When you write Markdown inside, put a blank line after the opening tag and before the closing tag.
 
 </callout>
 
 <details color="gray">
-<summary>詳しい手順</summary>
+<summary>Detailed steps</summary>
 
-折りたたむ中身。
+The collapsed content.
 
 </details>
 
@@ -66,105 +66,105 @@ GFM を基本に、次の Markus の記法を使う。ここに無いタグや�
     <col>
   </colgroup>
   <tr color="gray_bg">
-    <td>項目</td>
-    <td>内容</td>
+    <td>Item</td>
+    <td>Rule</td>
   </tr>
   <tr>
-    <td>パスワード</td>
-    <td color="red">**8 文字以上**<br>英字と数字を両方含む</td>
+    <td>Password</td>
+    <td color="red">**At least 8 characters**<br>Must include both letters and numbers</td>
   </tr>
   <tr>
-    <td>ロック</td>
-    <td>5 回失敗で 15 分</td>
+    <td>Lockout</td>
+    <td>15 minutes after 5 failed attempts</td>
   </tr>
 </table>
 
-<img src="https://media.markus.ink/..." alt="ログイン画面。メールアドレスとパスワードの欄がある" height="300">
+<img src="https://media.markus.ink/..." alt="Login screen with email and password fields" height="300">
 
-<img src="https://media.markus.ink/..." alt="入力前" height="250"> <img src="https://media.markus.ink/..." alt="入力後" height="250">
+<img src="https://media.markus.ink/..." alt="Before input" height="250"> <img src="https://media.markus.ink/..." alt="After input" height="250">
 
-<embed src="https://media.markus.ink/.../仕様書.pdf" type="application/pdf" title="仕様書.pdf" height="600">
+<embed src="https://media.markus.ink/.../spec.pdf" type="application/pdf" title="spec.pdf" height="600">
 
-<video src="https://.../demo.mp4" poster="https://.../poster.jpg" title="ログインの流れ"></video>
+<video src="https://.../demo.mp4" poster="https://.../poster.jpg" title="Login flow"></video>
 
 <iframe src="https://www.youtube.com/embed/dQw4w9WgXcQ?start=90" height="400"></iframe>
 
-<bookmark href="https://developer.mozilla.org/ja/docs/Web/HTTP/CORS" title="オリジン間リソース共有 (CORS) - HTTP | MDN" description="..." image="https://..." icon="https://..."></bookmark>
+<bookmark href="https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS" title="Cross-Origin Resource Sharing (CORS) - HTTP | MDN" description="..." image="https://..." icon="https://..."></bookmark>
 
 &nbsp;
 
 ```mermaid
 flowchart LR
-  A[ログイン] --> B[ホーム]
+  A[Login] --> B[Home]
 ```
 
 ```html height="400"
 <!DOCTYPE html>
-<html>（画面のモック）</html>
+<html>(a screen mockup)</html>
 ```
 
 ```markus-db
-database: タスク
+database: Tasks
 type: board
 ```
 
 ```markus-sheet
-sheet: 予算
-tab: 月別
+sheet: Budget
+tab: Monthly
 ```
 ````
 
-- 表は必ず `<table>` で書く。GFM の表（`| a | b |`）では書かない（色・幅・見出しの指定が書けず、Web で保存したときに全部書き直される）。
-  - `header-row`（1 行目を見出しにする）と `header-column`（1 列目を見出しにする）は両方書く。見出しのセルも `<td>` で書く。
-  - 色は `<col color>`（列）・`<tr color>`（行）・`<td color>`（セル）、幅は `<col width>`（px）。要らなければ `<colgroup>` は書かなくてよい。
-  - セルの中は 1 行の Markdown で、改行は `<br>`。
-- 色の名前は `gray` `brown` `orange` `yellow` `green` `blue` `purple` `pink` `red`。背景色は `_bg` を付ける（`yellow_bg`）。`style` 属性や 16 進数の色コードは書かない。
-- `<img>` は高さを決めるときだけ使う。決めないなら `![説明](URL)`。
-- 画像・動画・PDF・YouTube・` ```html ` の `height` は、50 の倍数（50 以上。画像・動画は 750 まで）で書く（Web では 50px 刻みで変えるため）。
-- 画像（と `<video>`）だけを空白 1 つで区切って 1 行に並べると、横に並んだ画像のブロック（ギャラリー）になる。その行には文字を書かない。高さを決めるなら、全部の画像に同じ `height` を書く。
-- ` ```html ` はコードではなく、動く画面（画面のモックなど）になる。`<!DOCTYPE html>` から始まる 1 つの文書で書く。
-- ` ```markus-db `・` ```markus-sheet ` は DB・シートの埋め込み。書ける項目は `databases.md`・`sheets.md` を読む。` ```markus-page ` はサイドページ（1）。
-- `&nbsp;` だけの段落は、Web で入れた何も書いていない行。消さない。
+- Always write tables with `<table>`. Don't use GFM tables (`| a | b |`) (they can't express colors, widths, or headers, and are fully rewritten when saved on the web).
+  - Always write both `header-row` (make the first row a header) and `header-column` (make the first column a header). Write header cells with `<td>` too.
+  - Colors go on `<col color>` (column), `<tr color>` (row), and `<td color>` (cell); widths go on `<col width>` (px). If you don't need them, you can leave out `<colgroup>`.
+  - Each cell is one line of Markdown; use `<br>` for line breaks.
+- Color names are `gray` `brown` `orange` `yellow` `green` `blue` `purple` `pink` `red`. For background colors, add `_bg` (`yellow_bg`). Don't use `style` attributes or hex color codes.
+- Use `<img>` only when you set the height. Otherwise use `![description](URL)`.
+- Write the `height` of images, videos, PDFs, YouTube, and ` ```html ` as a multiple of 50 (at least 50; up to 750 for images and videos), because the web resizes them in 50px steps.
+- A line with only images (and `<video>`s) separated by single spaces becomes a block of side-by-side images (a gallery). Don't put text on that line. If you set the height, give every image the same `height`.
+- ` ```html ` is not code; it becomes a live screen (such as a screen mockup). Write it as a single document starting with `<!DOCTYPE html>`.
+- ` ```markus-db ` and ` ```markus-sheet ` embed a database or sheet. For the keys you can write, read `databases.md` and `sheets.md`. ` ```markus-page ` is a side page (1).
+- A paragraph containing only `&nbsp;` is an empty line someone added on the web. Don't delete it.
 
-次の書き方は Markus には無い。書かないで、右の書き方にする。
+Markus doesn't have the following. Don't write them; use what's on the right instead.
 
-| 書かない | 代わりに |
+| Don't write | Instead |
 |---|---|
-| `<columns>`・`<column>`（横に並べる） | ブロックは縦に 1 列に並べる（画像だけは 1 行に並べてよい。上のギャラリー） |
-| `<empty-block/>` | `&nbsp;` だけの段落 |
-| 段落の後ろの `{color="red"}` | `<span color="red">…</span>` |
-| `<mention-page>` | `[タイトル](markus:<ulid>)`（1） |
-| `<page>`（ページの中のページ） | サイドページ（1 の「サイドページ」） |
-| `<mention-user>`・`<mention-date>` | 名前や日付を文字で書く |
-| `<table_of_contents/>` | 書かない（目次のブロックは無い） |
-| `> [!NOTE]` などの Alert | `<callout>` |
-| `$…$`（数式）・`[^1]`（脚注） | 書かない（Markus では表示できない） |
+| `<columns>`, `<column>` (side by side) | Stack blocks vertically in one column (only images may share a line: the gallery above) |
+| `<empty-block/>` | A paragraph containing only `&nbsp;` |
+| `{color="red"}` after a paragraph | `<span color="red">…</span>` |
+| `<mention-page>` | `[Title](markus:<ulid>)` (1) |
+| `<page>` (a page inside a page) | A side page ("Side pages" in 1) |
+| `<mention-user>`, `<mention-date>` | Write the name or date as text |
+| `<table_of_contents/>` | Don't write it (there is no table of contents block) |
+| Alerts such as `> [!NOTE]` | `<callout>` |
+| `$…$` (math), `[^1]` (footnotes) | Don't write them (Markus can't display them) |
 
-次の 7 つは、間違えても後の整形で見つからない（別の意味の正しい Markdown になる）ので、書くときに気を付ける。
+The following 7 mistakes are not caught by the formatter afterwards (they become valid Markdown with a different meaning), so be careful when writing.
 
-- 太字・斜体・取り消し線の中身の最初か最後が記号（「」、。（）など）のときは、`**` `*` `~~` でなく `<strong>` `<em>` `<s>` で書く（`前の**「重要」**後` は太字にならない）。中には Markdown を書いてよい。
-- 見出しと ToDo の項目の文章の中の改行は `<br>`。
-- 文章の行の頭にブロックの記号（`# ` `- ` `1. ` `> ` ```` ``` ```` `---`）を文字として書くときは `\` を付ける（`\- `・`1\. `）。
-- URL をリンクにするときは `[文字](URL)` か `<URL>` で書く。文字のすぐ後ろの URL（`名前https://…`）はリンクにならない。
-- コードフェンスの中に ```` ``` ```` を書くときは、それより長いフェンス（````` ```` `````）で囲む。
-- リストの項目の下に画像・ギャラリーを入れるときは、項目の文章との間に空の行を空けて、字下げして書く（空けないと項目の文章の中の画像になる）。
-- 画像・動画のキャプションの改行は、そのまま書かず、すべて `&#10;` にする（改行のまま書くと、空の行や「#」「-」「>」などで始まる行でそこが切れて、画像・動画でなくなる）。改行のある画像は `![...]` ではなく `<img src="..." alt="1 行目&#10;2 行目">` で書く。動画は `title` に同じように書く。`alt`・`title` の中の「"」は `&quot;`。
+- When the content of bold, italic, or strikethrough starts or ends with punctuation (quotes, parentheses, periods, colons, etc.), write `<strong>` `<em>` `<s>` instead of `**` `*` `~~` (`**Note:**next` and `the**"key"**part` are not bold). You may write Markdown inside the tags.
+- Line breaks inside the text of headings and to-do items are `<br>`.
+- When text at the start of a line begins with a block marker (`# ` `- ` `1. ` `> ` ```` ``` ```` `---`) that you mean as text, add `\` (`\- `, `1\. `).
+- To make a URL a link, write `[text](URL)` or `<URL>`. A URL right after text (`namehttps://…`) doesn't become a link.
+- To write ```` ``` ```` inside a code fence, wrap it in a longer fence (````` ```` `````).
+- To put an image or gallery under a list item, leave a blank line after the item's text and indent it (without the blank line, the image becomes part of the item's text).
+- Never write line breaks in image or video captions as is; write every one as `&#10;` (a raw line break cuts the caption at a blank line or a line starting with "#", "-", ">", etc., and it is no longer an image or video). Write an image with line breaks as `<img src="..." alt="Line 1&#10;Line 2">`, not `![...]`. For videos, write `title` the same way. Write `"` inside `alt` and `title` as `&quot;`.
 
-## 3. 画像・動画・PDF
+## 3. Images, videos, and PDFs
 
-- 画像・動画・PDF はリポジトリに置かない。Markus の Web でアップロードした URL（`https://media.markus.ink/...`）を使う。
-- 画像の代替テキストには、画像の内容を文章で書く。GIF は最初のコマしか見えないので、動きも文章で書く。
-- `data-figma` の付いた `<img>` は Figma ブロック。AI からは作らない（人が Figma のプラグインで書き出した zip を Web で置く）。動かすときは `data-figma` も一緒に動かし、消さない（消すとふつうの画像になり、レイヤーを見られなくなる）。
-- 動画は `<video>` で置く（`title` はキャプション）。YouTube の動画は `<iframe src="https://www.youtube.com/embed/<ID>">`（始める位置は `?start=<秒>`）。YouTube のほかの `<iframe>` は書かない。
-- リンク先をカードで見せるときは `<bookmark href="<URL>" title="<タイトル>"></bookmark>`。`description`（説明）・`image`（サムネイルの URL）・`icon`（アイコンの URL）は分かれば書く。属性の値の「"」は `&quot;`、「&」は `&amp;`、改行は書かない。
-- `<iframe>`・`<bookmark>` は、行の頭に 1 行で、前後に空の行を空けて書く。
+- Don't put images, videos, or PDFs in the repository. Use URLs uploaded on the Markus web (`https://media.markus.ink/...`).
+- In an image's alt text, describe what the image shows in sentences. Only the first frame of a GIF is visible, so describe the motion in words too.
+- An `<img>` with `data-figma` is a Figma block. Don't create one as an AI (people place the zip exported with the Figma plugin on the web). When you move one, move `data-figma` with it and don't delete it (without it, the block becomes a plain image and the layers can no longer be viewed).
+- Place videos with `<video>` (`title` is the caption). For YouTube videos, use `<iframe src="https://www.youtube.com/embed/<ID>">` (start position with `?start=<seconds>`). Don't write any other `<iframe>`.
+- To show a link as a card, write `<bookmark href="<URL>" title="<title>"></bookmark>`. Add `description`, `image` (thumbnail URL), and `icon` (icon URL) if you know them. In attribute values, write `"` as `&quot;` and `&` as `&amp;`, and don't include line breaks.
+- Write `<iframe>` and `<bookmark>` on a single line at the start of the line, with a blank line before and after.
 
-## 4. 整形
+## 4. Formatting
 
-- `.md`（ページ・サイドページ・DB の行・テンプレート）・`_database.yml`・`_sheet.yml`・コメントを書き終えたら、書き換えたファイルを渡して整形する: `node .markus/fmt.mjs docs/機能/ログイン.md …`
-  - `ulid` が無ければ付く。形の正しくない `ulid`・未来の時刻・新しいファイルなのに古い時刻（ほかのファイルを写した）は、直せない所として出る。
-  - Web で保存したときと同じ書き方に直る（箇条書きの記号・字下げ・空行・表の形など）。この細かい書き方は気にしなくてよい。
-  - 直せない所は `ファイル:行 理由` の形で出る（そのファイルは書き換わらない）。読んで直し、何も出なくなるまで繰り返す。
-  - 同じサイドページを指すブロックを 2 つ書いていたら、2 つ目からを複製のサイドページ（新しいファイル）に直す。
-  - 自分が書き換えていないファイルには実行しない（人が書いた所や、同期している間の Web の書きかけまで書き換わるため）。
-- 本文の文を書き換えて、コメントの対象の文が変わったときは、コメントも合わせる（`comments.md`）。
+- When you finish writing `.md` files (pages, side pages, database rows, templates), `_database.yml`, `_sheet.yml`, or comments, pass the files you changed to the formatter: `node .markus/fmt.mjs docs/Features/Login.md …`
+  - It adds a `ulid` if there is none. A malformed `ulid`, a time in the future, or an old time on a new file (copied from another file) are reported as problems it can't fix.
+  - It rewrites the file the same way the web writes it when saving (list markers, indentation, blank lines, table layout, etc.). You don't need to worry about these details.
+  - Problems it can't fix are printed as `file:line reason` (that file is not changed). Read them, fix them, and repeat until nothing is printed.
+  - If you wrote two blocks pointing to the same side page, it turns the second and later ones into duplicate side pages (new files).
+  - Don't run it on files you didn't change (it would also rewrite what people wrote and, while syncing, the web draft).
+- When you change body text and the text a comment points to changes, update the comment too (`comments.md`).

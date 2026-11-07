@@ -1,3 +1,4 @@
 version: 1
+language: en
 project:
-  name: 新しいプロジェクト
+  name: New project

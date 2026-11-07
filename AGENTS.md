@@ -1,81 +1,81 @@
 # AGENTS.md
 
-<!-- markus:begin v35 -->
-<!-- この印の間は Markus が書き換えます（Markus の規約）。変えないでください。決まりを足すときは、下の「このプロジェクトの決まり」に書いてください。 -->
+<!-- markus:begin v36 -->
+<!-- Markus rewrites everything between these markers (Markus rules). Do not change it. To add rules, write them under "Project rules" below. -->
 
-このリポジトリは **Markus** で管理されている仕様書リポジトリです。人は Markus の Web UI から編集し、AI エージェントはこのリポジトリを直接編集して push します。両方から同時に編集されるので、以下の規約を守ってください。下の「このプロジェクトの決まり」と食い違うときは、この規約を優先してください。
+This repository is a spec repository managed by **Markus**. People edit it from the Markus web UI, and AI agents edit this repository directly and push. Because it is edited from both sides at the same time, follow the rules below. If they conflict with "Project rules" below, these rules take precedence.
 
-## 1. 作業を始める前に
+## 1. Before you start
 
-- Markus の Web とこの clone を同期していることがある（Web の設定の「AI エージェントと編集」）。同期している間は、Web で書いた内容がすぐこの clone のファイルに書き込まれ、あなたが書き換えた内容も Web に出る。同期しているかは `find .git/markus-sync -mmin -2` で分かる（何か出れば同期している）。
-- まず `node .markus/sync.mjs` で最新にする。同期しているかを見て、やり方を選ぶ（同期していなければ `git pull --rebase --autostash`、同期していれば `git fetch` → `git reset @{u}`）。`.git` に書き、ネットワークも使うので、sandbox で動いているなら最初から sandbox の外で動かす。
-  - 同期していて、ファイルの中身を読むだけなら、最新にしなくていい（中身はもう最新）。履歴（`git log`・`git show`・`git blame` など）を見るときと、書き換えるときは最新にする（同期している間、git の記録は Web の保存に追いつかない）。
-  - 同期している間は、自分で `git pull` しない（Web で新しく作ったページがあると止まる）。
-  - 終了コードが 2 なら、同期していて push していないコミットがある。`git reset @{u}` しない（そのコミットが無くなる）。人に聞く。
-  - 終了コードが 1 なら、出たメッセージのとおりに直す。直すまでファイルを書き換えない。直せなければ人に伝える。
-- 同期している間は:
-  - 最新にした後も残る、まだコミットしていない変更は、Web で書いている途中の内容。消さない・戻さない・stash しない（`git reset --hard`・`git checkout .`・`git clean`・`git stash` をすると、Web の書きかけも消える）。人には報告しなくてよい。
-  - commit するときは、自分が書き換えたファイルだけを `git add` する（`git add -A` で Web の書きかけを混ぜない）。
+- The Markus web may be syncing with this clone ("Sync with local folder" in the web settings). While it syncs, what people write on the web is written to the files in this clone right away, and what you change shows up on the web. You can tell whether it is syncing with `find .git/markus-sync -mmin -2` (if it prints anything, it is syncing).
+- First, run `node .markus/sync.mjs` to get up to date. It checks whether the web is syncing and picks the right way (if not syncing, `git pull --rebase --autostash`; if syncing, `git fetch` → `git reset @{u}`). It writes to `.git` and uses the network, so if you run in a sandbox, run it outside the sandbox from the start.
+  - While syncing, if you only read file contents, you don't need to update (the contents are already up to date). Update before you look at history (`git log`, `git show`, `git blame`, etc.) and before you change anything (while syncing, the git history lags behind what the web has saved).
+  - While syncing, don't run `git pull` yourself (it stops if a page was newly created on the web).
+  - Exit code 2 means the web is syncing and there are commits that have not been pushed. Don't run `git reset @{u}` (those commits would be lost). Ask a person.
+  - Exit code 1 means: fix what the message says. Don't change any files until it is fixed. If you can't fix it, tell a person.
+- While syncing:
+  - Uncommitted changes that remain after updating are what someone is writing on the web. Don't discard, revert, or stash them (`git reset --hard`, `git checkout .`, `git clean`, or `git stash` also wipes out the web draft). You don't need to report them to anyone.
+  - When you commit, `git add` only the files you changed (don't mix in the web draft with `git add -A`).
 
-## 2. 書く前に必ず読む
+## 2. Always read before writing
 
-ファイルを作る・書き換える前に、必ず次のファイルを読む。読まずに書くと、Markus の Web で開けない・表示が崩れるファイルになる。
+Before you create or change a file, always read the file below. If you write without reading it, you will produce files that the Markus web can't open or displays incorrectly.
 
-| 書くもの | 書く前に読む |
+| What you write | Read first |
 |---|---|
-| ページ（`docs/` の `.md`）・サイドページ（`sidepages/`）・DB の行の本文 | `.markus/agents/pages.md` |
-| DB の行のプロパティ・`_database.yml`・ページの中の DB の埋め込み | `.markus/agents/databases.md` |
-| シートの CSV・`_sheet.yml`・ページの中のシートの埋め込み | `.markus/agents/sheets.md` |
-| コメントの返信・解決・新しいスレッド。本文を書き換えてコメントの対象が変わったとき | `.markus/agents/comments.md` |
+| Pages (`.md` in `docs/`), side pages (`sidepages/`), and the body of database rows | `.markus/agents/pages.md` |
+| Row properties, `_database.yml`, and databases embedded in pages | `.markus/agents/databases.md` |
+| Sheet CSVs, `_sheet.yml`, and sheets embedded in pages | `.markus/agents/sheets.md` |
+| Replying to, resolving, or starting comment threads; changing body text that a comment points to | `.markus/agents/comments.md` |
 
-- 書き終えたら、書き換えたファイル（`.md`・`_database.yml`・`_sheet.yml`）を渡して `node .markus/fmt.mjs <ファイル>…` を実行し、出た所を直す（`pages.md`）。`ulid` が無ければ付く。
-- コメント・DB の作成者に AI（あなた）を書くときは `ai:<人>`。`<人>` は `.git/markus-user` の中身（無ければ `git config user.name`）。どの AI かは書かない。
-- `.markus/config.yml` と `.markus/members.yml` は、頼まれたとき以外は変更しない。
+- When you finish writing, pass the files you changed (`.md`, `_database.yml`, `_sheet.yml`) to `node .markus/fmt.mjs <file>…` and fix what it reports (`pages.md`). It adds a `ulid` if there is none.
+- When you write yourself (an AI) as the author of a comment or a database row, write `ai:<person>`. `<person>` is the content of `.git/markus-user` (or `git config user.name` if it doesn't exist). Don't write which AI you are.
+- Don't change `.markus/config.yml` or `.markus/members.yml` unless asked.
 
-## 3. 読み方
+## 3. How to read the repository
 
-| 場所 | 中身 |
+| Location | Contents |
 |---|---|
-| `docs/` | ページ（`.md`）。フォルダはディレクトリ。タイトルは frontmatter の `title` |
-| `sidepages/` | サイドページ（ページの中のページ。サイドバーには出ない）。親は ` ```markus-page ` に `ulid: <サイドページの ulid>` を書いたページ |
-| `databases/` | データベース。`_database.yml` があるフォルダが 1 つの DB で、中の `.md` が 1 行ずつ。行のプロパティは frontmatter |
-| `sheets/` | シート（表計算）。`_sheet.yml` があるフォルダが 1 つのシートで、タブごとに 1 つの CSV |
-| `.markus/templates/` | テンプレート。1 ファイルが 1 つで、ファイル名が名前、中身は差し込む本文だけ（frontmatter は付けない）。人が「/テンプレート」でページや行の途中に差し込む。ページや行を書くときに合うものがあれば、その形で書く |
-| `.markus/comments/` | コメント。`<ページの ulid>/<スレッドの ulid>.md` が 1 スレッドで、未解決は `status: open` |
-| `.markus/members.yml` | メンバーの `handle` と名前（DB の人の値は `handle`） |
+| `docs/` | Pages (`.md`). Folders are directories. The title is `title` in the frontmatter |
+| `sidepages/` | Side pages (pages inside a page; not shown in the sidebar). The parent is the page that has a ` ```markus-page ` block with `ulid: <side page's ulid>` |
+| `databases/` | Databases. Each folder with a `_database.yml` is one database, and each `.md` inside it is one row. Row properties are in the frontmatter |
+| `sheets/` | Sheets (spreadsheets). Each folder with a `_sheet.yml` is one sheet, with one CSV per tab |
+| `.markus/templates/` | Templates. One file is one template; the file name is its name, and the content is only the body to insert (no frontmatter). People insert them anywhere in a page or row with "/template". When you write a page or row and a template fits, write it in that shape |
+| `.markus/comments/` | Comments. `<page's ulid>/<thread's ulid>.md` is one thread; open threads have `status: open` |
+| `.markus/members.yml` | Members' `handle`s and names (person values in databases are `handle`s) |
 
-- 内部リンクは `[タイトル](markus:<ulid>)`。リンク先は `grep -rl "ulid: <ulid>" docs/ databases/ sheets/ sidepages/` で探す（DB・シートなら `_database.yml`・`_sheet.yml` が見つかる）。サイドページの親も同じ grep で探す（出てきたファイルから、サイドページ自身を除いたものが親）。
-  - シートのタブへのリンクは `[シート名 / タブ名](markus:<_sheet.yml の ulid>#<タブの名前>)`。タブの名前の空白と `(` `)` `<` `>` `[` `]` `%` `#` `\` だけ `%XX` にし、日本語はそのまま書く（`β の 5 社` → `β%20の%205%20社`）。
-- 画像・動画・PDF は `https://media.markus.ink/...` の URL で置いてある。プロジェクトのメンバーしか見られないので、`curl` では取れない。`node .markus/media.mjs <URL>…` で一時ディレクトリに保存し、出たパスを読み込む（取得したファイルはコミットしない）。
-  - 初めてのときや連携が切れたときは、開く URL とコードが出て止まる（終了コード 2）。その文をそのまま人に伝え、「許可した」と言われたら同じコマンドをもう一度実行する。自分でブラウザを開いて許可しない。
-  - ほかのサイトの URL は、このスクリプトでは取らない（`curl` などで取る）。
-  - `data-figma` の付いた画像は、Figma のフレーム（Figma ブロック）。画面の様子は画像を見れば足りる。余白・色・文字の指定・コンポーネントなど、正確な値が要るときだけ `data-figma` の URL も同じスクリプトで取る。zip の中の `spec.json` がレイヤーの木（座標はフレームの左上から。大きいので要るレイヤーを探して読む）で、`assets/` にアイコンと画像の元ファイルがある。
-  - 動画は `poster` の画像を見て、必要なら `ffmpeg` でフレームを切り出して見る。YouTube の動画（`<iframe>`）・ブックマーク（`<bookmark>`）は、`title` を読めば何かが分かる。
-- Markus の Web から保存されたコミットは、author が Markus の App（bot）になる。実際に変更した人は、コミットメッセージの `Markus-User:` trailer で確かめる（`git blame` で bot と出た行も同じ）。
+- Internal links are `[Title](markus:<ulid>)`. Find the target with `grep -rl "ulid: <ulid>" docs/ databases/ sheets/ sidepages/` (for a database or sheet, you will find its `_database.yml` or `_sheet.yml`). Find a side page's parent with the same grep (the files it prints, minus the side page itself, are the parent).
+  - A link to a sheet tab is `[Sheet name / Tab name](markus:<ulid of _sheet.yml>#<tab name>)`. In the tab name, percent-encode (`%XX`) only spaces and `(` `)` `<` `>` `[` `]` `%` `#` `\`, and write every other character as is, including non-ASCII ones (`Top 5 (beta)` → `Top%205%20%28beta%29`).
+- Images, videos, and PDFs are stored at `https://media.markus.ink/...` URLs. Only project members can view them, so `curl` can't fetch them. Save them to a temporary directory with `node .markus/media.mjs <URL>…` and read the paths it prints (don't commit the fetched files).
+  - The first time, or when the link has expired, it prints a URL to open and a code, and stops (exit code 2). Pass that text to a person as is, and when they say they've approved it, run the same command again. Don't open a browser and approve it yourself.
+  - Don't use this script for URLs on other sites (fetch them with `curl` or similar).
+  - An image with `data-figma` is a Figma frame (a Figma block). The image is enough to see what the screen looks like. Only when you need exact values (spacing, colors, text styles, components, etc.), also fetch the `data-figma` URL with the same script. `spec.json` in the zip is the layer tree (coordinates are from the frame's top-left; it is large, so search for the layers you need), and `assets/` has the original icon and image files.
+  - For videos, look at the `poster` image, and if needed, extract frames with `ffmpeg`. For YouTube videos (`<iframe>`) and bookmarks (`<bookmark>`), read the `title` to see what they are.
+- Commits saved from the Markus web have the Markus App (a bot) as the author. Check who actually made the change with the `Markus-User:` trailer in the commit message (the same applies to lines that `git blame` attributes to the bot).
 
-### 人から場所を渡されたとき
+### When someone gives you a location
 
-| 渡されたもの | 読み方 |
+| What you're given | How to read it |
 |---|---|
-| `docs/機能/ログイン.md`・`docs/機能/` | リポジトリの一番上からのパス（末尾が `/` ならフォルダ） |
-| `docs/機能/ログイン.md:42-48` | そのファイルの 42〜48 行目。frontmatter も 1 行目から数える |
-| `sheets/予算/月別.csv B2:D7` | その CSV の 2〜7 行目の B〜D 列 |
-| Markus の Web の URL（`https://…/p/<プロジェクト>/…`） | 開かない（ログインが要る）。URL の中の ulid で、上のとおりファイルを探す（`?row=<ulid>` は DB の行）。`…/-/<パス>` は `-/` の後ろがパス |
+| `docs/Features/Login.md`, `docs/Features/` | A path from the top of the repository (a trailing `/` means a folder) |
+| `docs/Features/Login.md:42-48` | Lines 42–48 of that file. Count from line 1, including the frontmatter |
+| `sheets/Budget/Monthly.csv B2:D7` | Rows 2–7, columns B–D of that CSV |
+| A Markus web URL (`https://…/p/<project>/…`) | Don't open it (it requires login). Find the file by the ulid in the URL as above (`?row=<ulid>` is a database row). In `…/-/<path>`, what follows `-/` is the path |
 
-- 渡された行の中身が話と合わなければ、clone が古い。1 のとおりに最新にする。
+- If the lines you were given don't match what the person is talking about, the clone is out of date. Update it as described in 1.
 
-### 人に場所を伝えるとき
+### When you tell someone a location
 
-- 同期していれば、`.git/markus-sync` の `url:` の行が Web のプロジェクトの URL（`<url>`）。ファイルの ulid を使って、次の URL をリンクにする。
-  - ページ・DB の行は `<url>/<ulid>`、DB は `<url>/db/<_database.yml の ulid>`、シートは `<url>/sheet/<_sheet.yml の ulid>`、コメントは `<url>/<ページの ulid>?thread=<スレッドの ulid>`。
-  - ページの中の場所は `<url>/<ページの ulid>?block=<ブロックの先頭の文字>`。文字は 30 文字までで、URL エンコードする。Web に見えている文字で書く（`## `・`- `・`**` などの記号は入れない）。同じ文字で始まるブロックが前にもあれば、`&n=<何番目か>` を足す。
-- `url:` の行が無い・同期していない・ulid がまだ無いときは、リポジトリの一番上からのパス（`docs/機能/ログイン.md`）を書く。`/Users/…` のような PC の中のパスは、ほかの人には開けないので出さない。
+- If the web is syncing, the `url:` line in `.git/markus-sync` is the project's web URL (`<url>`). Use the file's ulid to link to the URLs below.
+  - A page or database row is `<url>/<ulid>`, a database is `<url>/db/<ulid of _database.yml>`, a sheet is `<url>/sheet/<ulid of _sheet.yml>`, and a comment is `<url>/<page's ulid>?thread=<thread's ulid>`.
+  - A place inside a page is `<url>/<page's ulid>?block=<text at the start of the block>`. Use up to 30 characters, URL-encoded. Write the text as it appears on the web (no `## `, `- `, `**`, or other markup). If an earlier block starts with the same text, add `&n=<which one>`.
+- If there is no `url:` line, the web isn't syncing, or there is no ulid yet, write the path from the top of the repository (`docs/Features/Login.md`). Don't share paths on your machine like `/Users/…`, because others can't open them.
 
-## 4. commit・push
+## 4. Commit and push
 
-- 頼まれていなければ、commit・push しない（人はまず Web で、書き換えた内容を確かめてから保存したいため）。終わったら、同期していれば「Web で確かめて保存してください」と伝え、同期していなければ push してよいかを聞く。
-- push するときは、もう一度 1 のとおりに最新にしてから commit し、すぐ push する（同期していれば、自分が書き換えたファイルだけを `git add`）。同期していて push が断られたら、`git fetch` → `git reset @{u}` からやり直す（今のコミットは無くなるが、中身はファイルに残っている。`.markus/sync.mjs` は push していないコミットがあると止まるので、ここだけは手で打つ）。
+- Don't commit or push unless asked (people want to check your changes on the web before saving). When you finish, if the web is syncing, say "Please review it on the web and save"; if not, ask whether you may push.
+- When you push, update again as described in 1, then commit and push right away (if syncing, `git add` only the files you changed). If the web is syncing and the push is rejected, start over from `git fetch` → `git reset @{u}` (your commit is lost, but its changes stay in the files; `.markus/sync.mjs` stops when there are unpushed commits, so type these commands yourself only here).
 
 <!-- markus:end -->
 
-## このプロジェクトの決まり
+## Project rules

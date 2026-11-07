@@ -1,91 +1,91 @@
-# シートを書く
+# Writing sheets
 
-このファイルは Markus が書き換えます（Markus の規約）。変えないでください。決まりを足すときは、AGENTS.md の「このプロジェクトの決まり」に書いてください。
+Markus rewrites this file (Markus rules). Do not change it. To add rules, write them under "Project rules" in AGENTS.md.
 
-シート（表計算）の CSV・`_sheet.yml`・ページの中のシートの埋め込みを作る・書き換えるときの決まりです。
+These are the rules for creating or changing sheet (spreadsheet) CSVs, `_sheet.yml`, and sheets embedded in pages.
 
-## 1. シートと CSV
+## 1. Sheets and CSVs
 
-- シートは `sheets/` の下にある。`_sheet.yml` があるフォルダが 1 つのシートで、タブごとに 1 つの CSV（`sheets/予算/月別.csv`）。ファイル名はタブの名前 + `.csv`。
-- 新しいシートの `_sheet.yml` の `ulid` は書かずに整形すれば付く（`pages.md`）。ほかの例の `ulid` を真似て手で書かない。
-- **値は CSV に書く。** 見た目は CSV に書かない（`_sheet.yml`）。
+- Sheets are under `sheets/`. Each folder with a `_sheet.yml` is one sheet, with one CSV per tab (`sheets/Budget/Monthly.csv`). The file name is the tab name + `.csv`.
+- Don't write the `ulid` of a new sheet's `_sheet.yml`; formatting adds it (`pages.md`). Don't write one by hand by imitating another example's `ulid`.
+- **Write values in the CSV.** Don't write appearance in the CSV (that goes in `_sheet.yml`).
 
 ```csv
-月,開発,デザイン,インフラ,合計
-7月,1800000,600000,120000,=SUM(B2:D2)
-合計,=SUM(B2:B7),=SUM(C2:C7),=SUM(D2:D7),=SUM(E2:E7)
+Month,Engineering,Design,Infrastructure,Total
+Jul,18000,6000,1200,=SUM(B2:D2)
+Total,=SUM(B2:B7),=SUM(C2:C7),=SUM(D2:D7),=SUM(E2:E7)
 ```
 
-- 1 行目から普通の CSV。カンマ・引用符・改行・前後の空白を含むセルだけを `"` で囲む（`"=ROUND(B2,0)"` のように、カンマを含む数式も囲む）。
-- どの行も同じ列の数にそろえ、後ろの空の行・右の空の列は書かない。
-- 数は `1800000`、日付は `2026-10-23`（時刻があれば `2026-10-23 09:30`）、真偽は `TRUE` / `FALSE`。
-- 数式は `=SUM(B2:B7)` のように `=` から書く（計算した値は書かない）。ほかのタブは `月別!B8`。
-- 結合したセル（`merges`）の値は左上のセルにだけ書き、残りは空にする。
+- A normal CSV from the first row. Wrap in `"` only cells that contain commas, quotes, line breaks, or leading/trailing spaces (also wrap formulas that contain commas, like `"=ROUND(B2,0)"`).
+- Give every row the same number of columns, and don't write empty rows at the end or empty columns on the right.
+- Numbers are `1800000`, dates are `2026-10-23` (with a time, `2026-10-23 09:30`), and booleans are `TRUE` / `FALSE`.
+- Write formulas starting with `=`, like `=SUM(B2:B7)` (don't write the computed value). Refer to other tabs as `Monthly!B8`.
+- For merged cells (`merges`), write the value only in the top-left cell and leave the rest empty.
 
-## 2. 見た目（`_sheet.yml`）
+## 2. Appearance (`_sheet.yml`)
 
 ```yaml
-ulid: 01M5KG5J7B37NMAAHZVDN1EZ6B   # シートの固定 ID。新しいシートでは書かない（整形で付く）
-name: 予算                          # シートの名前（フォルダ名もこれから作る）
-tabs:                               # タブの並び順
-  - name: 月別
-    freeze: { rows: 1, cols: 1 }    # 固定する行・列の数
-    widths: { A: 80, B: 110 }       # 列の幅（px）
-    merges: [ A14:B14 ]             # 結合
-    styles:                         # 見た目。後に書いたものが勝つ
+ulid: 01M5KG5J7B37NMAAHZVDN1EZ6B   # The sheet's fixed ID. Don't write it for a new sheet (formatting adds it)
+name: Budget                        # The sheet's name (the folder name is made from it too)
+tabs:                               # The order of the tabs
+  - name: Monthly
+    freeze: { rows: 1, cols: 1 }    # Number of frozen rows and columns
+    widths: { A: 80, B: 110 }       # Column widths (px)
+    merges: [ A14:B14 ]             # Merged cells
+    styles:                         # Appearance. Later entries win
       - { range: A1:E1, bold: true, bg: gray-1, align: center }
       - { range: B2:E8, format: "#,##0" }
-    charts:                         # グラフ（下の 3）
-      - { type: bar, range: A1:D7, title: 月別の費用, at: G2, width: 480, height: 300 }
-  - name: 集計
+    charts:                         # Charts (3 below)
+      - { type: bar, range: A1:D7, title: Monthly costs, at: G2, width: 480, height: 300 }
+  - name: Summary
 ```
 
-| `styles` のキー | 内容 |
+| `styles` key | Meaning |
 |---|---|
-| `range` | 範囲（`A1:C3`・`B2`。列全体は `B:B`、行全体は `2:2`） |
-| `bold` `italic` `underline` `strike` `wrap` | `true` のときだけ書く |
-| `color` | 文字の色。`gray` `brown` `orange` `yellow` `green` `blue` `purple` `pink` `red` のどれか（本文の色の名前と同じ）。書かなければ既定の文字の色 |
-| `bg` | 背景色。色の名前に段を付ける（`green-1` 薄い〜`green-4` 濃い）。段はライトモードでもダークモードでも「どれだけ目立つか」で、濃さで量を表すときは段を上げる。16 進数（`#rrggbb`）は書かない（読めるが、近い色に寄せられる） |
+| `range` | The range (`A1:C3`, `B2`; a whole column is `B:B`, a whole row is `2:2`) |
+| `bold` `italic` `underline` `strike` `wrap` | Write only when `true` |
+| `color` | Text color. One of `gray` `brown` `orange` `yellow` `green` `blue` `purple` `pink` `red` (the same color names as in the body). If omitted, the default text color |
+| `bg` | Background color. A color name with a level (`green-1` light to `green-4` strong). The level means "how much it stands out" in both light and dark mode; when shading shows quantity, raise the level. Don't write hex (`#rrggbb`) (it is read, but snapped to a nearby color) |
 | `align` | `left` `center` `right` |
-| `valign` | `top` `middle`（書かなければ下） |
-| `size` | 文字の大きさ（pt） |
-| `format` | 表示形式（`#,##0`・`0.0%`・`yyyy/m/d` など。スプレッドシートと同じ書き方）。日付を `yyyy-mm-dd` で出すなら書かない |
+| `valign` | `top` `middle` (bottom if omitted) |
+| `size` | Font size (pt) |
+| `format` | Number format (`#,##0`, `0.0%`, `m/d/yyyy`, etc.; the same syntax as spreadsheets). Omit it to show dates as `yyyy-mm-dd` |
 
-- **CSV の途中に行や列を足したり消したりしたら、`_sheet.yml` の範囲（`merges`・`styles`・`charts`）も同じだけずらす。** ずらさないと、色や結合が別のセルに付く。行は、できれば末尾に足す。
-- タブを足すときは CSV を置いて、`tabs` に `- name: <CSV のファイル名から .csv を除いたもの>` を足す（足さなくても、名前順で後ろのタブになる）。
-- 行の高さは書かない。知らないキーは消さない。
+- **When you add or remove rows or columns in the middle of a CSV, shift the ranges in `_sheet.yml` (`merges`, `styles`, `charts`) by the same amount.** Otherwise colors and merges end up on other cells. Add rows at the end when you can.
+- To add a tab, place a CSV and add `- name: <the CSV file name without .csv>` to `tabs` (if you don't, it becomes a later tab in name order).
+- Don't write row heights. Don't delete keys you don't know.
 
-## 3. グラフ
+## 3. Charts
 
-- グラフは表の上に浮かべて置く（スプレッドシートと同じ）。グラフは最初のタブ（「グラフ」）にまとめ、数字は次のタブに書くと、ページのブロックでグラフが先に見える。
-- `charts` に `{ type: bar, range: A1:D7, title: 名前, at: G2, width: 480, height: 300 }` と書く。
+- Charts float over the table (as in spreadsheets). If you gather charts on the first tab ("Charts") and put the numbers on the next tab, the page block shows the charts first.
+- Write `{ type: bar, range: A1:D7, title: Name, at: G2, width: 480, height: 300 }` in `charts`.
 
-| キー | 内容 |
+| Key | Meaning |
 |---|---|
-| `type` | `bar`（棒）・`line`（折れ線）・`pie`（円） |
-| `range` | 範囲。1 行目が系列の名前、1 列目が項目の名前。ほかのタブは `月別!A1:D7` |
-| `title` | グラフのタイトル |
-| `at` | グラフの左上を置くセル（書かなければ表の右に置く） |
-| `width`・`height` | 大きさ（px） |
-| `transpose` | `true` で行と列を入れ替える |
-| `hide` | 出さない系列の名前の並び（`[インフラ]`） |
-| `stacked` | `true` で棒を積み上げる |
-| `x_title`・`y_title` | 軸のタイトル |
-| `y_min`・`y_max` | 縦軸の範囲 |
-| `legend` | 凡例の場所。`bottom`・`none`（出さない）。書かなければ上 |
+| `type` | `bar`, `line`, `pie` |
+| `range` | The range. The first row is the series names, the first column is the category names. Refer to other tabs as `Monthly!A1:D7` |
+| `title` | The chart title |
+| `at` | The cell at the chart's top-left (if omitted, placed to the right of the table) |
+| `width`, `height` | Size (px) |
+| `transpose` | `true` swaps rows and columns |
+| `hide` | A list of series names not to show (`[Infrastructure]`) |
+| `stacked` | `true` stacks the bars |
+| `x_title`, `y_title` | Axis titles |
+| `y_min`, `y_max` | The vertical axis range |
+| `legend` | Legend position: `bottom` or `none` (hidden). Top if omitted |
 
-## 4. 埋め込み
+## 4. Embeds
 
-- ページの中に表示するときは ` ```markus-sheet ` ブロックを置く。範囲の中に置いたグラフも重ねて出る。
+- To show a sheet inside a page, place a ` ```markus-sheet ` block. Charts placed within the range are shown on top too.
 
 ```markus-sheet
-sheet: 予算
-tab: 月別
+sheet: Budget
+tab: Monthly
 range: A1:E8
 ```
 
-| キー | 内容 |
+| Key | Meaning |
 |---|---|
-| `sheet` | シートのフォルダ名（必須） |
-| `tab` | 最初に出すタブ（省略すると 1 つ目） |
-| `range` | `tab:` のタブで出す範囲（省略すると左上から書いたセルがある所まで。列は少なくとも 12 列。どちらも 100 行・26 列まで） |
+| `sheet` | The sheet's folder name (required) |
+| `tab` | The tab to show first (the first tab if omitted) |
+| `range` | The range to show on the `tab:` tab (if omitted, from the top-left to the last cell with content, with at least 12 columns; either way, up to 100 rows and 26 columns) |

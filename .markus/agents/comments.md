@@ -1,88 +1,88 @@
-# コメントを書く
+# Writing comments
 
-このファイルは Markus が書き換えます（Markus の規約）。変えないでください。決まりを足すときは、AGENTS.md の「このプロジェクトの決まり」に書いてください。
+Markus rewrites this file (Markus rules). Do not change it. To add rules, write them under "Project rules" in AGENTS.md.
 
-コメントに返信する・解決する・新しいスレッドを作るとき、また本文を書き換えてコメントの対象が変わったときの決まりです。
+These are the rules for replying to comments, resolving them, starting new threads, and for when you change body text that a comment points to.
 
-## 1. ファイル
+## 1. Files
 
-- コメントは `.markus/comments/<ページの ulid>/<スレッドの ulid>.md` にある（DB の行へのコメントも同じ）。1 ファイルが 1 スレッド。
+- Comments are in `.markus/comments/<page's ulid>/<thread's ulid>.md` (comments on database rows too). One file is one thread.
 
 ```markdown
 ---
 ulid: 01JC1A2B3C4D5E6F7G8H9J0K1M
 page: 01JB8Z6Q3K4M5N6P7R8S9T0V1W
 status: open
-created_by: suzuki
-original_quote: "リセット URL の有効期限は 24 時間とする"
+created_by: sam
+original_quote: "The reset URL expires after 24 hours"
 anchor:
   type: text
-  quote: "リセット URL の有効期限は 24 時間とする"
-  prefix: "メールの "
-  suffix: "。"
-  section: "ルール"
+  quote: "The reset URL expires after 24 hours"
+  prefix: "In the email, "
+  suffix: "."
+  section: "Rules"
 ---
 
-### suzuki · 2026-11-02T10:15+09:00
-有効期限は 24 時間で合っていますか？
+### sam · 2026-11-02T10:15-05:00
+Is 24 hours the right expiry?
 
-### ai:tanaka · 2026-11-02T11:03+09:00
-実装（`src/auth/reset.ts`）では 1 時間になっています。仕様を 1 時間に直しますか？
+### ai:alex · 2026-11-02T11:03-05:00
+The implementation (`src/auth/reset.ts`) uses 1 hour. Should I change the spec to 1 hour?
 ```
 
-| キー | 内容 |
+| Key | Meaning |
 |---|---|
-| `ulid` | スレッドの固定 ID（ファイル名と同じ） |
-| `page` | 対象のページ（DB の行も）の `ulid` |
-| `status` | `open`（未解決）・`resolved`（解決） |
-| `created_by`・`resolved_by` | 始めた人・解決した人。人は `handle`、AI は `ai:<人>`（`ai:tanaka`。`<人>` は `.git/markus-user` の中身、無ければ `git config user.name`）。`resolved_by` は解決しているときだけ |
-| `original_quote` | 投稿したときの対象の文。後から変えない |
-| `anchor` | 今の本文で対象を探す手がかり（下の表） |
+| `ulid` | The thread's fixed ID (same as the file name) |
+| `page` | The `ulid` of the page (or database row) it is on |
+| `status` | `open` (unresolved) or `resolved` |
+| `created_by`, `resolved_by` | Who started it and who resolved it. People are `handle`s; an AI is `ai:<person>` (`ai:alex`; `<person>` is the content of `.git/markus-user`, or `git config user.name` if it doesn't exist). `resolved_by` only when resolved |
+| `original_quote` | The text the comment pointed to when it was posted. Never change it afterwards |
+| `anchor` | Clues to find the target in the current body (table below) |
 
-- 1 件のコメントは `### <投稿者> · <日時>` の見出しと、その下の本文（Markdown）。見出しに ` · 編集 <日時>` が付いているのは、投稿した人が直したコメント。
+- Each comment is a `### <author> · <datetime>` heading with its body (Markdown) below. A heading ending with ` · edited <datetime>` (or ` · 編集 <datetime>`, written by someone using Markus in Japanese) is a comment its author edited.
 
-## 2. 対象の書き方
+## 2. Writing the target
 
-| 対象 | `original_quote` | `anchor` |
+| Target | `original_quote` | `anchor` |
 |---|---|---|
-| ページ全体 | 書かない | 書かない |
-| 本文の一部 | 選んだ文字 | `type: text`・`quote`（対象の文）・`prefix`・`suffix`（すぐ前・すぐ後の文字。30 文字まで）・`section`（対象を含む直近の見出し） |
-| ブロック全体 | 書かない | `type: block`・`block`（種類）・下の手がかり・`section` |
+| The whole page | Don't write it | Don't write it |
+| Part of the body | The selected text | `type: text`, `quote` (the target text), `prefix`, `suffix` (the text right before and right after; up to 30 characters), `section` (the nearest heading containing the target) |
+| A whole block | Don't write it | `type: block`, `block` (the kind), the clue below, `section` |
 
-- `quote`・`prefix`・`suffix` は、ページの本文に 1 字も違わずにある文字にする。画面に見えている文字で書き、Markdown の記号（`**`・`[...](...)` など）は含めない。`prefix`・`suffix` は対象と同じブロック（段落・見出し・リストの項目・表のセルなど）の中の文字だけで、ブロックの先頭・末尾なら書かない。
+- `quote`, `prefix`, and `suffix` must be text that appears in the page body exactly, character for character. Write the text as it appears on screen, without Markdown markup (`**`, `[...](...)`, etc.). `prefix` and `suffix` contain only text within the same block as the target (paragraph, heading, list item, table cell, etc.); omit them at the start or end of the block.
 
-ブロック全体へのコメントの手がかり:
+Clues for comments on a whole block:
 
-| `block` | 手がかり |
+| `block` | Clue |
 |---|---|
-| `database`（DB の埋め込み） | `database: <DB の ulid>`（`_database.yml` の `ulid`） |
-| `sheet`（シートの埋め込み） | `sheet: <シートの ulid>` |
-| `image`・`video`・`pdf` | `src: <ファイルの URL>`（YouTube の動画は `video` で、`<iframe>` の `src`） |
-| `bookmark` | `src: <リンク先の URL>`（`<bookmark>` の `href`） |
-| `html`・`mermaid`・`code` | `quote`: 中身の先頭（30 文字まで） |
-| `table` | `quote`: 1 行目のセルの文字を `\|` でつないだもの（30 文字まで） |
-| ほか（段落・見出し・リスト・引用・コールアウト・トグル・区切り線） | `quote`: ブロックの先頭の文字（30 文字まで。トグルは見出しの文字）。文字の無い区切り線は書かない |
+| `database` (embedded database) | `database: <database's ulid>` (the `ulid` in `_database.yml`) |
+| `sheet` (embedded sheet) | `sheet: <sheet's ulid>` |
+| `image`, `video`, `pdf` | `src: <file URL>` (YouTube videos are `video`, with the `<iframe>`'s `src`) |
+| `bookmark` | `src: <link URL>` (the `<bookmark>`'s `href`) |
+| `html`, `mermaid`, `code` | `quote`: the start of the content (up to 30 characters) |
+| `table` | `quote`: the first row's cell texts joined with `\|` (up to 30 characters) |
+| Others (paragraph, heading, list, quote, callout, toggle, divider) | `quote`: the text at the start of the block (up to 30 characters; for toggles, the summary text). Don't write it for a divider, which has no text |
 
 ```yaml
 anchor:
   type: block
   block: database
   database: 01M3Y1ABCDEFGHJKMNPQRSTVWX
-  section: "関連タスク"
+  section: "Related tasks"
 ```
 
-## 3. 返信・解決
+## 3. Replying and resolving
 
-- 返信はファイルの末尾に `### ai:<人> · <日時>` の見出しで追記する（例: `### ai:tanaka · 2026-10-19T10:00+09:00`）。本文は Markdown で、ページへのリンクは `[タイトル](markus:<ulid>)`。
-- 人のコメント（見出しが `ai:` で始まらないもの）は編集・削除しない。
-- 解決してよいか分からないときは `status` を変えない。解決するときは `status: resolved` と `resolved_by: ai:<人>` を書く。ファイルは消さない。
+- Add a reply at the end of the file under a `### ai:<person> · <datetime>` heading (for example, `### ai:alex · 2026-10-19T10:00-05:00`). The body is Markdown; link to pages with `[Title](markus:<ulid>)`.
+- Don't edit or delete people's comments (those whose heading doesn't start with `ai:`).
+- If you aren't sure whether it's OK to resolve, don't change `status`. To resolve, write `status: resolved` and `resolved_by: ai:<person>`. Don't delete the file.
 
-## 4. 本文を書き換えたとき
+## 4. When you change the body
 
-- 本文の文を書き換えて、コメントの対象の文が変わったときは、`anchor.quote`（と `prefix`・`suffix`）も新しい文に合わせる。`original_quote` は変えない。
-- ブロックの先頭（上の表の `quote`）を書き換えたときは、そのブロックへのコメントの `quote` も新しい先頭に合わせる。先頭で探すので、合わせないと対象が見つからなくなる。
+- When you change body text and the text a comment points to changes, update `anchor.quote` (and `prefix` and `suffix`) to the new text. Don't change `original_quote`.
+- When you change the start of a block (the `quote` in the table above), update the `quote` of comments on that block to the new start too. The target is found by its start, so if you don't, it can no longer be found.
 
-## 5. 新しいスレッド
+## 5. New threads
 
-- スレッドの ulid を `node .markus/fmt.mjs --ulid` で作り、ファイル名（`.markus/comments/<ページの ulid>/<スレッドの ulid>.md`）と `ulid` にする。
-- 上の 1 の形で、`page`・`status: open`・`created_by: ai:<人>` と、対象に合わせて `original_quote`・`anchor`（上の 2）を書く。その下に、最初のコメントを `### ai:<人> · <日時>` の見出しで書く。書き終えたら整形ツールにファイルを渡す（`pages.md`）。
+- Create the thread's ulid with `node .markus/fmt.mjs --ulid`, and use it for the file name (`.markus/comments/<page's ulid>/<thread's ulid>.md`) and `ulid`.
+- In the shape of 1 above, write `page`, `status: open`, `created_by: ai:<person>`, and, depending on the target, `original_quote` and `anchor` (2 above). Below that, write the first comment under a `### ai:<person> · <datetime>` heading. When you finish, pass the file to the formatter (`pages.md`).
