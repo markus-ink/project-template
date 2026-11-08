@@ -19,7 +19,7 @@ Total,=SUM(B2:B7),=SUM(C2:C7),=SUM(D2:D7),=SUM(E2:E7)
 - A normal CSV from the first row. Wrap in `"` only cells that contain commas, quotes, line breaks, or leading/trailing spaces (also wrap formulas that contain commas, like `"=ROUND(B2,0)"`).
 - Give every row the same number of columns, and don't write empty rows at the end or empty columns on the right.
 - Numbers are `1800000`, dates are `2026-10-23` (with a time, `2026-10-23 09:30`), and booleans are `TRUE` / `FALSE`.
-- Write formulas starting with `=`, like `=SUM(B2:B7)` (don't write the computed value). Refer to other tabs as `Monthly!B8`.
+- Write formulas starting with `=`, like `=SUM(B2:B7)` (don't write the computed value). Refer to other tabs as `Monthly!B8`. See section 5 for the functions you can use.
 - For merged cells (`merges`), write the value only in the top-left cell and leave the rest empty.
 
 ## 2. Appearance (`_sheet.yml`)
@@ -89,3 +89,19 @@ range: A1:E8
 | `sheet` | The sheet's folder name (required) |
 | `tab` | The tab to show first (the first tab if omitted) |
 | `range` | The range to show on the `tab:` tab (if omitted, from the top-left to the last cell with content, with at least 12 columns; either way, up to 100 rows and 26 columns) |
+
+## 5. Functions you can use in formulas
+
+- Markus computes the values of the table in a page block and of charts (including full-screen ones). A cell that uses a function not listed below (`RAND`, `OFFSET`, `INDIRECT`, `LAMBDA`, etc.) shows "…" in the block and is left out of charts (cells in the full-screen table are still computed). Compute the numbers a chart uses only with the functions below.
+- They mean the same as in Excel and Google Sheets. Criteria (`">=100"`, `"*Store"`, `"<>"`), whole columns (`Journal!$G:$G`), math between ranges (`=SUMPRODUCT((A2:A100="Sales")*B2:B100)`), and arrays (`{1,2;3,4}`) work too.
+- Pass functions that return a range (`FILTER`, `UNIQUE`, `SORT`, `SEQUENCE`, `TRANSPOSE`) to another function (`=SUM(FILTER(B2:B100,A2:A100="Sales"))`). Written directly in a cell, the block shows only the top-left value.
+- `TEXT` takes only formats you can write as a display format (`format`). Weekday names (`aaa`, `ddd`) and month names (`mmm`) don't work.
+
+- Aggregation: `SUM SUMIF SUMIFS SUMPRODUCT SUMSQ PRODUCT SUBTOTAL COUNT COUNTA COUNTBLANK COUNTIF COUNTIFS AVERAGE AVERAGEA AVERAGEIF AVERAGEIFS MAX MAXA MAXIFS MIN MINA MINIFS`
+- Math: `ABS SIGN INT TRUNC ROUND ROUNDUP ROUNDDOWN MROUND CEILING CEILING.MATH CEILING.PRECISE FLOOR FLOOR.MATH FLOOR.PRECISE EVEN ODD MOD QUOTIENT POWER SQRT SQRTPI EXP LN LOG LOG10 PI DEGREES RADIANS SIN COS TAN ASIN ACOS ATAN ATAN2 SINH COSH TANH FACT COMBIN PERMUT GCD LCM`
+- Statistics: `MEDIAN MODE MODE.SNGL LARGE SMALL RANK RANK.EQ RANK.AVG PERCENTILE PERCENTILE.INC PERCENTILE.EXC QUARTILE QUARTILE.INC QUARTILE.EXC STDEV STDEV.S STDEVP STDEV.P STDEVA STDEVPA VAR VAR.S VARP VAR.P VARA VARPA AVEDEV DEVSQ GEOMEAN HARMEAN CORREL PEARSON RSQ COVAR COVARIANCE.P COVARIANCE.S SLOPE INTERCEPT FORECAST FORECAST.LINEAR`
+- Logic and info: `IF IFS IFERROR IFNA SWITCH AND OR XOR NOT TRUE FALSE ISBLANK ISNUMBER ISTEXT ISNONTEXT ISLOGICAL ISERROR ISERR ISNA ISEVEN ISODD N T NA`
+- Text: `LEN LEFT RIGHT MID FIND SEARCH SUBSTITUTE REPLACE REPT TRIM CLEAN LOWER UPPER PROPER EXACT CONCAT CONCATENATE TEXTJOIN TEXTBEFORE TEXTAFTER TEXT VALUE FIXED CHAR CODE UNICHAR UNICODE`
+- Date and time: `TODAY NOW DATE TIME YEAR MONTH DAY HOUR MINUTE SECOND WEEKDAY WEEKNUM ISOWEEKNUM EDATE EOMONTH DAYS DATEDIF DATEVALUE TIMEVALUE NETWORKDAYS WORKDAY`
+- Lookup and ranges: `VLOOKUP HLOOKUP XLOOKUP LOOKUP MATCH XMATCH INDEX CHOOSE ROW COLUMN ROWS COLUMNS TRANSPOSE FILTER UNIQUE SORT SEQUENCE`
+- Finance: `PMT IPMT PPMT FV PV NPV NPER RATE IRR SLN`
