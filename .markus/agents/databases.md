@@ -11,6 +11,7 @@ These are the rules for creating or changing database rows, `_database.yml`, and
 - Row file names and `ulid`s work the same way as pages (`pages.md`).
 - A database created on the Markus web may have a folder name like `Untitled database` or `Untitled database 2` (`無題のデータベース` in Japanese) until it's saved on the web, even though it has a name. This is normal: don't rename the folder, write to it as it is (the `database:` of database blocks on pages also points to that folder name), and don't point it out to the person. Markus renames the folder to match the name, and rewrites the blocks, when that database is saved.
 - `rank` is the order on boards and in manual sorting. You may omit it for new rows.
+- Express a hand-picked order with `rank` (dragging rows on the web rewrites it). Don't create a property only for sorting (such as "List order"): if you use it in `sort`, dragging on the web no longer changes the order.
 
 ## 2. `_database.yml`
 
@@ -115,3 +116,4 @@ sort: [{ Due: asc }]
 - `filter` is `{ property: value }` for "is" ("contains" for multi-select and person), and `true` / `false` for checked / unchecked. For conditions, write `{ property: { condition: value } }`, where the condition is `eq`, `not`, `contains`, `not_contains`, `gt`, `lt` (numbers), `before`, `after` (dates), `empty: true`, or `not_empty: true`. When you list several, only rows matching all of them are shown (`{ Status: { not: Done }, Due: { before: 2026-11-01 } }`).
 - `type` through `bar_properties` are the view, and look the same to everyone. Changing the view on the web rewrites these lines. `filter` and `sort` are the initial display; filters and sorts a viewer changes on the web stay only in their browser (the file doesn't change).
 - Write the view of the database page in `view` in `_database.yml` (separate from block views; it takes the same keys except `database`).
+- When you write `columns`, don't leave out the properties used in `sort` (so the table shows why rows are in that order). `columns` can't be re-picked on the web (opening a row shows all its properties).
