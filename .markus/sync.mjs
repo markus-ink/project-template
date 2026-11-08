@@ -3,6 +3,7 @@
 //   node .markus/sync.mjs
 // Markus の Web と同期しているか（.git/markus-sync）を見て、やり方を選ぶ（AGENTS.md の 1）。
 //   同期していない: git pull --rebase --autostash
+//   目印が古い（ブラウザが落ちたなど）: 何もせずに止まる。人は同期しているつもりのことが多く、書き換えても Web に出ないので、人に伝えさせる
 //   同期している:   git fetch → git reset @{u}（--hard は付けない）。Web の中身はもうファイルにあるので、git の記録だけを合わせる
 // その前に、Markus の規約（AGENTS.md の印の間・.markus/agents/）とスクリプトが今の版かを確かめ、古ければ Markus に書き換えてもらってから取り込む。
 // Markus に届かなければ、確かめずに進む
@@ -60,6 +61,8 @@ const MESSAGES = {
     checkFailed: (error) => `Couldn't check whether the Markus rules are up to date (${error}). Continuing with the rules in this clone.`,
     updateFailed: (error) => `The Markus rules in this clone are out of date, but Markus couldn't update them (${error}). Continuing with the rules in this clone.`,
     notWritten: "Markus updated the Markus rules, but Markus on the web hasn't written them to this folder yet. Wait a moment, then run node .markus/sync.mjs again.",
+    stale: (minutes) =>
+      `Syncing with Markus on the web has stopped (.git/markus-sync hasn't been rewritten for ${minutes} minutes, e.g. the browser crashed). Changes you make now won't show up on the web, so nothing was changed. Tell a person. Once they resume syncing on the web, run this again. If they say to go ahead without syncing, delete .git/markus-sync and run this again.`,
   },
   ja: {
     gitFailed: (cmd) => `git ${cmd} ができませんでした。何も変えていません。`,
@@ -76,6 +79,8 @@ const MESSAGES = {
     checkFailed: (error) => `Markus の規約が最新か確かめられませんでした（${error}）。この clone の規約のまま進めます。`,
     updateFailed: (error) => `この clone の Markus の規約が古いですが、Markus に最新にしてもらえませんでした（${error}）。この clone の規約のまま進めます。`,
     notWritten: "Markus の規約を最新にしましたが、Markus の Web がまだこのフォルダに書いていません。少し待ってから、もう一度 node .markus/sync.mjs を実行してください。",
+    stale: (minutes) =>
+      `Markus の Web との同期が止まっています（.git/markus-sync が ${minutes} 分前から書き直されていません。ブラウザが落ちたなど）。このまま書き換えても Web には出ないので、何も変えていません。人に伝えてください。Web で同期を再開したら、もう一度実行してください。人が同期しないで進めると言ったら、.git/markus-sync を消してから、もう一度実行してください。`,
   },
 };
 const t = MESSAGES[language()];
@@ -101,11 +106,12 @@ function must(...args) {
 const gitDir = must("rev-parse", "--absolute-git-dir");
 const inProgress = () => IN_PROGRESS.some((name) => fs.existsSync(path.join(gitDir, name)));
 
-function syncing() {
+/** 目印が最後に書き直されてからの時間（ミリ秒）。目印が無ければ null */
+function markerAge() {
   try {
-    return Date.now() - fs.statSync(path.join(gitDir, "markus-sync")).mtimeMs < MARKER_MAX_AGE;
+    return Date.now() - fs.statSync(path.join(gitDir, "markus-sync")).mtimeMs;
   } catch {
-    return false;
+    return null;
   }
 }
 
@@ -196,10 +202,13 @@ async function checkRules() {
 // 途中で reset すると、rebase・マージの続きができなくなる
 if (inProgress()) stop(t.inProgress);
 if (!git("rev-parse", "--verify", "--quiet", "@{u}").ok) stop(t.noUpstream);
+// 目印が古ければ、規約の確かめも pull もしない（何も変えずに人に伝えさせる）
+const age = markerAge();
+if (age !== null && age >= MARKER_MAX_AGE) stop(t.stale(Math.floor(age / 60_000)));
 
 const rulesCurrent = await checkRules();
 
-if (syncing()) {
+if (age !== null) {
   must("fetch");
   const unpushed = must("log", "--oneline", "@{u}..");
   if (unpushed) stop(t.unpushed(unpushed), ASK_HUMAN);
