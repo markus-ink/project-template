@@ -1,6 +1,6 @@
 # AGENTS.md
 
-<!-- markus:begin v40 -->
+<!-- markus:begin v41 -->
 <!-- Markus rewrites everything between these markers (Markus rules). Do not change it. To add rules, write them under "Project rules" below. -->
 
 This repository is a spec repository managed by **Markus**. People edit it from the Markus web UI, and AI agents edit this repository directly and push. Because it is edited from both sides at the same time, follow the rules below. If they conflict with "Project rules" below, these rules take precedence.
@@ -44,6 +44,7 @@ Before you create or change a file, always read the file below. If you write wit
 | `.markus/comments/` | Comments. `<page's ulid>/<thread's ulid>.md` is one thread; open threads have `status: open` |
 | `.markus/members.yml` | Members' `handle`s and names (person values in databases are `handle`s) |
 
+- When you read a page, side page or database row, also read all of its comments (the files in `.markus/comments/<its ulid>/`, resolved threads included; if the folder doesn't exist, it has no comments). They may disagree with the body, point out what isn't decided yet, or explain why something was decided.
 - Internal links are `[Title](markus:<ulid>)`. Find the target with `grep -rl "ulid: <ulid>" docs/ databases/ sheets/ sidepages/` (for a database or sheet, you will find its `_database.yml` or `_sheet.yml`). Find a side page's parent with the same grep (the files it prints, minus the side page itself, are the parent).
   - A link to a sheet tab is `[Sheet name / Tab name](markus:<ulid of _sheet.yml>#<tab name>)`. In the tab name, percent-encode (`%XX`) only spaces and `(` `)` `<` `>` `[` `]` `%` `#` `\`, and write every other character as is, including non-ASCII ones (`Top 5 (beta)` → `Top%205%20%28beta%29`).
 - Images, videos, and PDFs are stored at `https://media.markus.ink/...` URLs. Only project members can view them, so `curl` can't fetch them. Save them to a temporary directory with `node .markus/media.mjs <URL>…` and read the paths it prints (don't commit the fetched files).
