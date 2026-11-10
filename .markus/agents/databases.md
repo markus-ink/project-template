@@ -9,7 +9,7 @@ These are the rules for creating or changing database rows, `_database.yml`, and
 - Databases are under `databases/`. Each folder with a `_database.yml` is one database, and each `.md` inside it is one row (row = page).
 - Don't write the `ulid` of a new database or row; formatting adds it (`pages.md`; the sidebar is sorted by `ulid`, that is, in creation order). Don't write one by hand by imitating another example's `ulid`.
 - Row file names and `ulid`s work the same way as pages (`pages.md`).
-- A database created on the Markus web may have a folder name like `Untitled database` or `Untitled database 2` (`無題のデータベース` in Japanese) until it's saved on the web, even though it has a name. This is normal: don't rename the folder, write to it as it is (the `database:` of database blocks on pages also points to that folder name), and don't point it out to the person. Markus renames the folder to match the name, and rewrites the blocks, when that database is saved.
+- A database created on the Markus web may have a folder name like `Untitled database 7KQX` (ending in the last 4 characters of its ulid; `無題のデータベース 7KQX` in Japanese), `Untitled database` or `Untitled database 2` until it's saved on the web, even though it has a name. This is normal: don't rename the folder, write to it as it is (the `database:` of database blocks on pages also points to that folder name), and don't point it out to the person. Markus renames the folder to match the name, and rewrites the blocks, when that database is saved.
 - `rank` is the order on boards and in manual sorting. You may omit it for new rows.
 - Express a hand-picked order with `rank` (dragging rows on the web rewrites it). Don't create a property only for sorting (such as "List order"): if you use it in `sort`, dragging on the web no longer changes the order.
 
@@ -104,7 +104,7 @@ sort: [{ Due: asc }]
 | Key | Meaning |
 |---|---|
 | `database` | The database's folder name (required; `Tasks` for `databases/Tasks/`) |
-| `type` | The kind of view: `table` (default), `board`, `timeline` |
+| `type` | The kind of view: `table`, `board`, `timeline`. Write it for tables too (a block without it is read as a table; the formatter adds `type: table`) |
 | `group_by` | The property to group by (status or select). For boards, the first status or select if omitted |
 | `date_start`, `date_end` | The date properties for the timeline's range (the first and second date properties if omitted) |
 | `table_columns` | Columns to show in the timeline's table on the left, besides the name (`[Status, Assignee]`) |

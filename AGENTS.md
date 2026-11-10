@@ -1,6 +1,6 @@
 # AGENTS.md
 
-<!-- markus:begin v41 -->
+<!-- markus:begin v43 -->
 <!-- Markus rewrites everything between these markers (Markus rules). Do not change it. To add rules, write them under "Project rules" below. -->
 
 This repository is a spec repository managed by **Markus**. People edit it from the Markus web UI, and AI agents edit this repository directly and push. Because it is edited from both sides at the same time, follow the rules below. If they conflict with "Project rules" below, these rules take precedence.

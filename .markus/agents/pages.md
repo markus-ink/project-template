@@ -10,7 +10,7 @@ These are the rules for creating or changing pages (`.md` in `docs/`), side page
 - Always put pages under `docs/`. A `.md` placed outside `docs/` doesn't appear on the Markus web.
 - The file name is made from the page title. The real title is `title` in the frontmatter.
   - Replace characters that can't be used in file names, `/ \ : * ? " < > |`, with their full-width forms (`/` → `／`). Use at most the first 50 characters of the title. If the same name already exists in the folder, add " 2" (`Untitled 2.md`).
-  - A page or row created on the Markus web may have a file name like `Untitled.md` or `Untitled 2.md` (`無題.md` in Japanese) until it's saved on the web, even though it has a title. This is normal: don't rename the file, write to it as it is, and don't point it out to the person. Markus renames it to match the title when that page is saved.
+  - A page or row created on the Markus web may have a file name like `Untitled 7KQX.md` ("Untitled" and the last 4 characters of its ulid; `無題 7KQX.md` in Japanese), `Untitled.md` or `Untitled 2.md` until it's saved on the web, even though it has a title. This is normal: don't rename the file, write to it as it is, and don't point it out to the person. Markus renames it to match the title when that page is saved.
 - The frontmatter has only `ulid`, `title` (required), and `rank` (optional). Don't add other properties to regular pages (only database rows have properties).
 
 ```yaml
