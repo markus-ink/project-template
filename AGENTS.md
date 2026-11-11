@@ -1,6 +1,6 @@
 # AGENTS.md
 
-<!-- markus:begin v43 -->
+<!-- markus:begin v44 -->
 <!-- Markus rewrites everything between these markers (Markus rules). Do not change it. To add rules, write them under "Project rules" below. -->
 
 This repository is a spec repository managed by **Markus**. People edit it from the Markus web UI, and AI agents edit this repository directly and push. Because it is edited from both sides at the same time, follow the rules below. If they conflict with "Project rules" below, these rules take precedence.
@@ -69,7 +69,7 @@ Before you create or change a file, always read the file below. If you write wit
 ### When you tell someone a location
 
 - If the web is syncing, the `url:` line in `.git/markus-sync` is the project's web URL (`<url>`). Use the file's ulid to link to the URLs below.
-  - A page or database row is `<url>/<ulid>`, a database is `<url>/db/<ulid of _database.yml>`, a sheet is `<url>/sheet/<ulid of _sheet.yml>`, and a comment is `<url>/<page's ulid>?thread=<thread's ulid>`.
+  - A page or database row is `<url>/<ulid>`, a database is `<url>/db/<ulid of _database.yml>`, a sheet is `<url>/sheet/<ulid of _sheet.yml>`, and a comment is `<url>/<page's ulid>?thread=<thread's ulid>` (a comment on a whole database or sheet is `<url>/db/<ulid>?thread=…` or `<url>/sheet/<ulid>?thread=…`).
   - A place inside a page is `<url>/<page's ulid>?block=<text at the start of the block>`. Use up to 30 characters, URL-encoded. Write the text as it appears on the web (no `## `, `- `, `**`, or other markup). If an earlier block starts with the same text, add `&n=<which one>`.
 - If there is no `url:` line, the web isn't syncing, or there is no ulid yet, write the path from the top of the repository (`docs/Features/Login.md`). Don't share paths on your machine like `/Users/…`, because others can't open them.
 

@@ -6,7 +6,7 @@ These are the rules for replying to comments, resolving them, starting new threa
 
 ## 1. Files
 
-- Comments are in `.markus/comments/<page's ulid>/<thread's ulid>.md` (comments on database rows too). One file is one thread.
+- Comments are in `.markus/comments/<page's ulid>/<thread's ulid>.md` (comments on database rows too). Comments on a whole database or sheet are in the folder of the `ulid` in `_database.yml` or `_sheet.yml` instead of a page's ulid. One file is one thread.
 
 ```markdown
 ---
@@ -33,7 +33,7 @@ The implementation (`src/auth/reset.ts`) uses 1 hour. Should I change the spec t
 | Key | Meaning |
 |---|---|
 | `ulid` | The thread's fixed ID (same as the file name) |
-| `page` | The `ulid` of the page (or database row) it is on |
+| `page` | The `ulid` of the page (or database row) it is on. For a comment on a whole database or sheet, the `ulid` in `_database.yml` or `_sheet.yml` |
 | `status` | `open` (unresolved) or `resolved` |
 | `created_by`, `resolved_by` | Who started it and who resolved it. People are `handle`s; an AI is `ai:<person>` (`ai:alex`; `<person>` is the content of `.git/markus-user`, or `git config user.name` if it doesn't exist). `resolved_by` only when resolved |
 | `original_quote` | The text the comment pointed to when it was posted. Never change it afterwards |
@@ -45,7 +45,7 @@ The implementation (`src/auth/reset.ts`) uses 1 hour. Should I change the spec t
 
 | Target | `original_quote` | `anchor` |
 |---|---|---|
-| The whole page | Don't write it | Don't write it |
+| The whole page, database, or sheet | Don't write it | Don't write it |
 | Part of the body | The selected text | `type: text`, `quote` (the target text), `prefix`, `suffix` (the text right before and right after; up to 30 characters), `section` (the nearest heading containing the target) |
 | A whole block | Don't write it | `type: block`, `block` (the kind), the clue below, `section` |
 

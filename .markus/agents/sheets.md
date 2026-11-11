@@ -28,6 +28,7 @@ Total,=SUM(B2:B7),=SUM(C2:C7),=SUM(D2:D7),=SUM(E2:E7)
 ```yaml
 ulid: 01M5KG5J7B37NMAAHZVDN1EZ6B   # The sheet's fixed ID. Don't write it for a new sheet (formatting adds it)
 name: Budget                        # The sheet's name (the folder name is made from it too)
+icon: 💰                            # Icon emoji (optional; don't write it unless asked)
 tabs:                               # The order of the tabs
   - name: Monthly
     freeze: { rows: 1, cols: 1 }    # Number of frozen rows and columns

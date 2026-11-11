@@ -18,6 +18,7 @@ These are the rules for creating or changing database rows, `_database.yml`, and
 ```yaml
 ulid: 01JB9DB0...                 # The database's fixed ID. Generated from the current time
 name: Tasks                       # The database's name (the folder name is made from it too)
+icon: ✅                           # Icon emoji (optional; don't write it unless asked)
 key_prefix: TSK                   # Only for databases with IDs. Gives rows a serial key (TSK-12). "" means number only (12)
 properties:                       # Their order is the order of the table columns
   Status:
@@ -57,7 +58,7 @@ view:                             # The view of the database page (the full page
 
 - Don't add the name column (`title`) to the properties.
 - Options are `{ name: …, color: … }`. Color names are the same as in `pages.md` (`gray` `brown` `orange` `yellow` `green` `blue` `purple` `pink` `red`).
-- Don't name a property `ulid`, `id`, `title`, `key`, or `rank` (they are reserved).
+- Don't name a property `ulid`, `id`, `title`, `key`, `rank`, `created_by`, or `icon` (they are reserved).
 - Don't delete keys you don't know.
 
 ## 3. Properties (a row's frontmatter)
