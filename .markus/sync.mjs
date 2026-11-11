@@ -2,6 +2,9 @@
 // この clone を最新にする（Markus が配る。書き換えないでください）。
 //   node .markus/sync.mjs
 // Markus の Web と同期しているか（.git/markus-sync）を見て、やり方を選ぶ（AGENTS.md の 1）。
+// Markus が書き出したフォルダ（.git/markus-project がある。clone ではなく、Markus の Web が同期で作った。GitHub なし・GitHub のどちらのプロジェクトでも）は
+// pull する先が無いので、git を使わずに、同期しているかと規約が今の版かだけを確かめる（05「Markus が書き出すフォルダ」）。
+// 初めに、どちらのフォルダとして動いたかを 1 行で出す
 //   同期していない: git pull --rebase --autostash
 //   目印が古い（ブラウザが落ちたなど）: 何もせずに止まる。人は同期しているつもりのことが多く、書き換えても Web に出ないので、人に伝えさせる
 //   同期している:   git fetch → git reset @{u}（--hard は付けない）。Web の中身はもうファイルにあるので、git の記録だけを合わせる
@@ -58,9 +61,13 @@ const MESSAGES = {
     stashConflict: (files) => `Updated, but restoring your uncommitted changes hit a conflict. They are still in git stash. Fix the conflict markers in the files below, then run git reset and git stash drop.\n${files}`,
     updated: (head) => `Up to date (${head}).`,
     rulesUpdated: "The Markus rules and scripts in this repository were out of date, so Markus updated them. Read AGENTS.md again before you start.",
-    checkFailed: (error) => `Couldn't check whether the Markus rules are up to date (${error}). Continuing with the rules in this clone.`,
-    updateFailed: (error) => `The Markus rules in this clone are out of date, but Markus couldn't update them (${error}). Continuing with the rules in this clone.`,
+    checkFailed: (error) => `Couldn't check whether the Markus rules are up to date (${error}). Continuing with the rules in this folder.`,
+    updateFailed: (error) => `The Markus rules in this folder are out of date, but Markus couldn't update them (${error}). Continuing with the rules in this folder.`,
     notWritten: "Markus updated the Markus rules, but Markus on the web hasn't written them to this folder yet. Wait a moment, then run node .markus/sync.mjs again.",
+    notSyncing: "Markus on the web isn't syncing with this folder, so changes you make won't show up on the web. Nothing was changed. Ask a person to start syncing on the Markus web (\"Sync with local folder\" in the settings), then run this again.",
+    kindExported: "This folder was written out by Markus (not a clone). Don't pull, commit, or push; people save on the Markus web.",
+    kindClone: "This folder is a clone.",
+    hostedSynced: "Syncing with Markus on the web. The files are up to date. Changes shown by git status are what hasn't been saved on the web yet; don't discard, revert, or stash them.",
     stale: (minutes) =>
       `Syncing with Markus on the web has stopped (.git/markus-sync hasn't been rewritten for ${minutes} minutes, e.g. the browser crashed). Changes you make now won't show up on the web, so nothing was changed. Tell a person. Once they resume syncing on the web, run this again. If they say to go ahead without syncing, delete .git/markus-sync and run this again.`,
   },
@@ -76,14 +83,29 @@ const MESSAGES = {
     stashConflict: (files) => `最新にしましたが、書きかけの変更を戻すときに衝突しました。書きかけは git stash に残っています。次のファイルの衝突の印を直して、git reset と git stash drop をしてください。\n${files}`,
     updated: (head) => `最新にしました（${head}）。`,
     rulesUpdated: "このリポジトリの Markus の規約とスクリプトが古かったので、Markus が最新にしました。始める前に AGENTS.md を読み直してください。",
-    checkFailed: (error) => `Markus の規約が最新か確かめられませんでした（${error}）。この clone の規約のまま進めます。`,
-    updateFailed: (error) => `この clone の Markus の規約が古いですが、Markus に最新にしてもらえませんでした（${error}）。この clone の規約のまま進めます。`,
+    checkFailed: (error) => `Markus の規約が最新か確かめられませんでした（${error}）。このフォルダの規約のまま進めます。`,
+    updateFailed: (error) => `このフォルダの Markus の規約が古いですが、Markus に最新にしてもらえませんでした（${error}）。このフォルダの規約のまま進めます。`,
     notWritten: "Markus の規約を最新にしましたが、Markus の Web がまだこのフォルダに書いていません。少し待ってから、もう一度 node .markus/sync.mjs を実行してください。",
+    notSyncing: "Markus の Web がこのフォルダと同期していないので、書き換えても Web には出ません。何も変えていません。人に、Markus の Web で同期を始めてもらってください（設定の「AI エージェントと編集」）。始めたら、もう一度実行してください。",
+    kindExported: "このフォルダは、Markus が書き出したフォルダです（clone ではありません）。pull・commit・push はしません。保存は人が Markus の Web でします。",
+    kindClone: "このフォルダは clone です。",
+    hostedSynced: "Markus の Web と同期しています。ファイルは最新です。git status に出る変更は、Web でまだ保存していない内容なので、消さない・戻さない・stash しないでください。",
     stale: (minutes) =>
       `Markus の Web との同期が止まっています（.git/markus-sync が ${minutes} 分前から書き直されていません。ブラウザが落ちたなど）。このまま書き換えても Web には出ないので、何も変えていません。人に伝えてください。Web で同期を再開したら、もう一度実行してください。人が同期しないで進めると言ったら、.git/markus-sync を消してから、もう一度実行してください。`,
   },
 };
 const t = MESSAGES[language()];
+
+/** Markus が書き出したフォルダの、プロジェクトの ID（.git/markus-project）。無ければ null（clone）。PC に git が無くても読めるよう、ファイルを直に読む */
+function markusProject() {
+  try {
+    const id = fs.readFileSync(path.join(root, ".git", "markus-project"), "utf8").trim();
+    return /^prj_[a-z0-9]{10}$/.test(id) ? id : null;
+  } catch {
+    return null;
+  }
+}
+const hostedProject = markusProject();
 
 function git(...args) {
   // AI の端末ではパスワードを打てないので、聞かれたら待たずに失敗させる
@@ -103,7 +125,7 @@ function must(...args) {
   return r.stdout;
 }
 
-const gitDir = must("rev-parse", "--absolute-git-dir");
+const gitDir = hostedProject ? path.join(root, ".git") : must("rev-parse", "--absolute-git-dir");
 const inProgress = () => IN_PROGRESS.some((name) => fs.existsSync(path.join(gitDir, name)));
 
 /** 目印が最後に書き直されてからの時間（ミリ秒）。目印が無ければ null */
@@ -175,8 +197,8 @@ const reason = (e) => (e?.name === "TimeoutError" ? "timeout" : (e?.cause?.code 
  * 書き換えてもらったら、手元が今の版になったかを返す関数。書き換えなかった・確かめられなかったら null（そのまま進む）
  */
 async function checkRules() {
-  const repo = githubRepo();
-  if (!repo) return null;
+  const repo = hostedProject ? null : githubRepo();
+  if (!repo && !hostedProject) return null;
   let latest;
   try {
     latest = await api("/api/agents", {}, CHECK_TIMEOUT);
@@ -189,7 +211,8 @@ async function checkRules() {
   const current = () => hashes.includes(localHash(paths));
   if (current()) return null;
   try {
-    const res = await api(`/api/agents?repo=${encodeURIComponent(repo)}`, { method: "POST" }, UPDATE_TIMEOUT);
+    const target = repo ? `repo=${encodeURIComponent(repo)}` : `project=${hostedProject}`;
+    const res = await api(`/api/agents?${target}`, { method: "POST" }, UPDATE_TIMEOUT);
     if (!res?.updated) return null;
   } catch (e) {
     console.log(t.updateFailed(reason(e)));
@@ -197,6 +220,28 @@ async function checkRules() {
   }
   console.log(t.rulesUpdated);
   return current;
+}
+
+/** 書き換えてもらった規約を、Web がこのフォルダに書き終えるまで待つ（古いまま読ませない） */
+async function waitWritten(rulesCurrent) {
+  if (!rulesCurrent) return;
+  const until = Date.now() + WRITE_TIMEOUT;
+  while (!rulesCurrent()) {
+    if (Date.now() > until) stop(t.notWritten);
+    await new Promise((resolve) => setTimeout(resolve, 500));
+  }
+}
+
+console.log(hostedProject ? t.kindExported : t.kindClone);
+
+if (hostedProject) {
+  // GitHub なしのプロジェクト: ファイルも .git も Web が書くので、同期していれば最新。同期していなければ書き換えさせない
+  const age = markerAge();
+  if (age === null) stop(t.notSyncing);
+  if (age >= MARKER_MAX_AGE) stop(t.stale(Math.floor(age / 60_000)));
+  await waitWritten(await checkRules());
+  console.log(t.hostedSynced);
+  process.exit(0);
 }
 
 // 途中で reset すると、rebase・マージの続きができなくなる
@@ -215,13 +260,7 @@ if (age !== null) {
   must("reset", "--quiet", "@{u}");
   restoreScripts();
   // 規約のファイル（AGENTS.md・.markus/agents/）は Web が書く。書き終わるまで待つ（古いまま読ませない）
-  if (rulesCurrent) {
-    const until = Date.now() + WRITE_TIMEOUT;
-    while (!rulesCurrent()) {
-      if (Date.now() > until) stop(t.notWritten);
-      await new Promise((resolve) => setTimeout(resolve, 500));
-    }
-  }
+  await waitWritten(rulesCurrent);
   const changes = must("status", "--porcelain").split("\n").filter(Boolean).length;
   console.log(t.synced(must("rev-parse", "--short", "HEAD"), changes ? t.draft(changes) : ""));
 } else {

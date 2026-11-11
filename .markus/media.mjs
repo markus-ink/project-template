@@ -6,6 +6,7 @@
 // そのときは開く URL とコードを出して止まる（終了コード 2）。人に伝え、Markus で「許可」を押してもらってから、同じコマンドをもう一度実行する。
 // トークンは ~/.config/markus/ に置き、Markus のメディアの URL（media.markus.ink）にだけ付ける。
 // 置くには、そのプロジェクトの Editor 以上のロールが要る。どのプロジェクトかは、この clone の GitHub のリポジトリ（git remote）で決める。
+// Markus の Web が書き出したフォルダ（clone ではないもの。GitHub なし・GitHub のどちらのプロジェクトでも）は、.git/markus-project で決める。
 
 import { spawnSync } from "node:child_process";
 import fs from "node:fs";
@@ -193,6 +194,16 @@ async function fetchOne(raw) {
   throw new Error(t.stillUnauthorized(raw));
 }
 
+/** Markus が書き出したフォルダの、プロジェクトの ID（.git/markus-project。Markus の Web が書く）。無ければ null。git が無くても読めるよう、ファイルを直に読む */
+function markusProject() {
+  try {
+    const id = fs.readFileSync(path.join(root, ".git", "markus-project"), "utf8").trim();
+    return /^prj_[a-z0-9]{10}$/.test(id) ? id : null;
+  } catch {
+    return null;
+  }
+}
+
 /** この clone の GitHub のリポジトリ（owner/repo）。origin を先に見る */
 function githubRepo() {
   const out = spawnSync("git", ["-C", root, "remote", "-v"], { encoding: "utf8" });
@@ -275,13 +286,14 @@ async function uploadOne(file) {
   if (!stat?.isFile()) throw new Error(t.noFile(file));
   if (stat.size > MAX_UPLOAD) throw new Error(t.tooLarge(file));
   const bytes = stripJpegMetadata(fs.readFileSync(file));
-  repo ??= githubRepo();
+  repo ??= markusProject() ? null : githubRepo();
+  const target = repo ? `repo=${encodeURIComponent(repo)}` : `project=${markusProject()}`;
   const origin = UPLOAD_ORIGIN;
   const host = new URL(origin).hostname;
 
   for (let attempt = 0; attempt < 2; attempt++) {
     const token = await tokenFor(origin, host);
-    const res = await fetch(`${origin}/api/media?repo=${encodeURIComponent(repo)}`, {
+    const res = await fetch(`${origin}/api/media?${target}`, {
       method: "POST",
       headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/octet-stream", "X-File-Name": encodeURIComponent(path.basename(file)) },
       body: bytes,
@@ -295,6 +307,7 @@ async function uploadOne(file) {
       continue;
     }
     if (json.code === "repo_not_project") throw new Error(t.notProject(repo));
+    if (json.code === "not_member" || json.code === "project_not_found") throw new Error(t.notProject(markusProject() ?? ""));
     if (json.code === "role_required") throw new Error(t.roleRequired);
     throw new Error(t.uploadFailed(res.status, json.error ?? "", file));
   }

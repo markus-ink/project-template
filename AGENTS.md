@@ -1,21 +1,25 @@
 # AGENTS.md
 
-<!-- markus:begin v44 -->
+<!-- markus:begin v47 -->
 <!-- Markus rewrites everything between these markers (Markus rules). Do not change it. To add rules, write them under "Project rules" below. -->
 
-This repository is a spec repository managed by **Markus**. People edit it from the Markus web UI, and AI agents edit this repository directly and push. Because it is edited from both sides at the same time, follow the rules below. If they conflict with "Project rules" below, these rules take precedence.
+This repository is a spec repository managed by **Markus**. People edit it from the Markus web UI, and AI agents edit the files in this folder directly. Because it is edited from both sides at the same time, follow the rules below. If they conflict with "Project rules" below, these rules take precedence.
 
 ## 1. Before you start
 
-- The Markus web may be syncing with this clone ("Sync with local folder" in the web settings). While it syncs, what people write on the web is written to the files in this clone right away, and what you change shows up on the web. You can tell whether it is syncing with `find .git/markus-sync -mmin -2` (if it prints anything, it is syncing).
-- First, run `node .markus/sync.mjs` to get up to date. It checks whether the web is syncing and picks the right way (if not syncing, `git pull --rebase --autostash`; if syncing, `git fetch` → `git reset @{u}`). It writes to `.git` and uses the network, so if you run in a sandbox, run it outside the sandbox from the start.
+- First, run `node .markus/sync.mjs`. Its first line says whether this folder is a **folder written out by Markus** (the Markus web created it by syncing; it is not a clone and has no remote) or a **clone**, and then it gets the folder up to date. You don't need to check which it is yourself (the difference is whether `.git/markus-project` exists). It reads `.git` and uses the network, so if you run in a sandbox, run it outside the sandbox from the start.
+  - Exit code 1 means: do what the message says. Don't change any files until it is fixed. If you can't fix it, tell a person.
+- The Markus web may be syncing with this folder ("Sync with local folder" in the web settings). While it syncs, what people write on the web is written to the files in this folder right away, and what you change shows up on the web. You can tell whether it is syncing with `find .git/markus-sync -mmin -2` (if it prints anything, it is syncing).
+  - While syncing, uncommitted changes shown by `git status` and `git diff` are what has not been saved on the web yet (including your changes). Don't discard, revert, or stash them (`git reset --hard`, `git checkout .`, `git clean`, or `git stash` also wipes out the web draft). You don't need to report them to anyone.
+- In a **folder written out by Markus**:
+  - Always use it while syncing. If it is not syncing, your changes would not show up on the web, so don't change any files (`sync.mjs` stops with exit code 1). Ask a person to start syncing on the Markus web.
+  - `.git` is written out by the Markus web and is read-only. You may look at history with `git log`, `git show`, and `git blame` (if git is not installed, you can't; install git or ask a person). Don't pull, commit, or push (see 4).
+- In a **clone**:
+  - `sync.mjs` runs `git pull --rebase --autostash` if the web is not syncing, and `git fetch` → `git reset @{u}` if it is.
   - While syncing, if you only read file contents, you don't need to update (the contents are already up to date). Update before you look at history (`git log`, `git show`, `git blame`, etc.) and before you change anything (while syncing, the git history lags behind what the web has saved).
   - While syncing, don't run `git pull` yourself (it stops if a page was newly created on the web).
   - Exit code 2 means the web is syncing and there are commits that have not been pushed. Don't run `git reset @{u}` (those commits would be lost). Ask a person.
-  - Exit code 1 means: fix what the message says. Don't change any files until it is fixed. If you can't fix it, tell a person.
-- While syncing:
-  - Uncommitted changes that remain after updating are what someone is writing on the web. Don't discard, revert, or stash them (`git reset --hard`, `git checkout .`, `git clean`, or `git stash` also wipes out the web draft). You don't need to report them to anyone.
-  - When you commit, `git add` only the files you changed (don't mix in the web draft with `git add -A`).
+  - When you commit while syncing, `git add` only the files you changed (don't mix in the web draft with `git add -A`).
 
 ## 2. Always read before writing
 
@@ -64,7 +68,7 @@ Before you create or change a file, always read the file below. If you write wit
 | `sheets/Budget/Monthly.csv B2:D7` | Rows 2–7, columns B–D of that CSV |
 | A Markus web URL (`https://…/p/<project>/…`) | Don't open it (it requires login). Find the file by the ulid in the URL as above (`?row=<ulid>` is a database row). In `…/-/<path>`, what follows `-/` is the path |
 
-- If the lines you were given don't match what the person is talking about, the clone is out of date. Update it as described in 1.
+- If the lines you were given don't match what the person is talking about, this folder is out of date. Update it as described in 1.
 
 ### When you tell someone a location
 
@@ -75,8 +79,10 @@ Before you create or change a file, always read the file below. If you write wit
 
 ## 4. Commit and push
 
-- Don't commit or push unless asked (people want to check your changes on the web before saving). When you finish, if the web is syncing, say "Please review it on the web and save"; if not, ask whether you may push.
-- When you push, update again as described in 1, then commit and push right away (if syncing, `git add` only the files you changed). If the web is syncing and the push is rejected, start over from `git fetch` → `git reset @{u}` (your commit is lost, but its changes stay in the files; `.markus/sync.mjs` stops when there are unpushed commits, so type these commands yourself only here).
+- In a **folder written out by Markus**: don't commit or push. People save on the Markus web (your changes show up there as unsaved changes). When you finish, say "Please review it on the web and save". A commit isn't kept on the web and disappears the next time the web updates `.git`. There is nowhere to push to.
+- In a **clone**:
+  - Don't commit or push unless asked (people want to check your changes on the web before saving). When you finish, if the web is syncing, say "Please review it on the web and save"; if not, ask whether you may push.
+  - When you push, update again as described in 1, then commit and push right away (if syncing, `git add` only the files you changed). If the web is syncing and the push is rejected, start over from `git fetch` → `git reset @{u}` (your commit is lost, but its changes stay in the files; `.markus/sync.mjs` stops when there are unpushed commits, so type these commands yourself only here).
 
 <!-- markus:end -->
 
