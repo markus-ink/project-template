@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Markus に置いた画像・動画・PDF を取る・置く（Markus が配る。書き換えないでください）。
+// Markus に置いたファイル（画像・動画・音声・PDF など、何でも）を取る・置く（Markus が配る。書き換えないでください）。
 //   node .markus/media.mjs <URL>…            一時ディレクトリに保存して、保存した場所を 1 行ずつ出す。
 //   node .markus/media.mjs upload <ファイル>…  この clone の Markus のプロジェクトに置いて、URL を 1 行ずつ出す（ページには自分で書く）。
 // 画像は Markus のプロジェクトのメンバーしか見られないので、初めてのときはこの端末を Markus に連携する。
@@ -17,8 +17,8 @@ import { fileURLToPath } from "node:url";
 const HOSTS = new Set(["media.markus.ink", "media-dev.markus.ink"]);
 /** 置く先。Markus が配るときに、このプロジェクトの Markus のもの（開発なら media-dev.markus.ink）に書き換える */
 const UPLOAD_ORIGIN = "https://media.markus.ink";
-/** 1 ファイルの上限（種類ごとの上限は Markus が確かめる） */
-const MAX_UPLOAD = 20 * 1024 * 1024;
+/** どのプランでも置けない大きさ（1 ファイルの上限はプランで 20〜100MB。プランの上限は Markus が確かめて、理由を返す） */
+const MAX_UPLOAD = 100 * 1024 * 1024;
 const NEEDS_APPROVAL = 2;
 const root = fileURLToPath(new URL("..", import.meta.url));
 
@@ -71,7 +71,7 @@ const MESSAGES = {
     stillUnauthorized: (raw) => `Can't fetch it (still can't read it after linking again): ${raw}`,
     usage: "Usage: node .markus/media.mjs <URL>…  (fetch)\n       node .markus/media.mjs upload <file>…  (upload)",
     noFile: (file) => `File not found: ${file}`,
-    tooLarge: (file) => `Too large (up to 20MB): ${file}`,
+    tooLarge: (file) => `Too large (files can be up to 20–100MB depending on the plan): ${file}`,
     noRepo: "Can't tell which Markus project this is: this clone has no GitHub remote (git remote -v)",
     notProject: (repo) => `${repo} isn't a Markus project you're a member of. Ask a person to check the project and that they linked the device with their own account`,
     roleRequired: "Uploading requires the Editor role or higher in this project. Ask a person",
@@ -100,7 +100,7 @@ const MESSAGES = {
     stillUnauthorized: (raw) => `取れません（連携し直しても読めません）: ${raw}`,
     usage: "使い方: node .markus/media.mjs <URL>…（取る）\n       node .markus/media.mjs upload <ファイル>…（置く）",
     noFile: (file) => `ファイルがありません: ${file}`,
-    tooLarge: (file) => `大きすぎます（20MB まで）: ${file}`,
+    tooLarge: (file) => `大きすぎます（1 ファイルはプランにより 20〜100MB まで）: ${file}`,
     noRepo: "どの Markus のプロジェクトか分かりません。この clone に GitHub のリモートがありません（git remote -v）",
     notProject: (repo) => `${repo} は、あなたが入っている Markus のプロジェクトではありません。プロジェクトと、連携した人のアカウントが合っているか、人に確かめてください`,
     roleRequired: "置くには、このプロジェクトの Editor 以上のロールが要ります。人に聞いてください",

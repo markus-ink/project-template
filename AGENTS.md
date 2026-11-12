@@ -1,6 +1,6 @@
 # AGENTS.md
 
-<!-- markus:begin v48 -->
+<!-- markus:begin v50 -->
 <!-- Markus rewrites everything between these markers (Markus rules). Do not change it. To add rules, write them under "Project rules" below. -->
 
 This repository is a spec repository managed by **Markus**. People edit it from the Markus web UI, and AI agents edit the files in this folder directly. Because it is edited from both sides at the same time, follow the rules below. If they conflict with "Project rules" below, these rules take precedence.
@@ -51,12 +51,12 @@ Before you create or change a file, always read the file below. If you write wit
 - When you read a page, side page or database row, also read all of its comments (the files in `.markus/comments/<its ulid>/`, resolved threads included; if the folder doesn't exist, it has no comments). They may disagree with the body, point out what isn't decided yet, or explain why something was decided.
 - Internal links are `[Title](markus:<ulid>)`. Find the target with `grep -rl "ulid: <ulid>" docs/ databases/ sheets/ sidepages/` (for a database or sheet, you will find its `_database.yml` or `_sheet.yml`). Find a side page's parent with the same grep (the files it prints, minus the side page itself, are the parent).
   - A link to a sheet tab is `[Sheet name / Tab name](markus:<ulid of _sheet.yml>#<tab name>)`. In the tab name, percent-encode (`%XX`) only spaces and `(` `)` `<` `>` `[` `]` `%` `#` `\`, and write every other character as is, including non-ASCII ones (`Top 5 (beta)` → `Top%205%20%28beta%29`).
-- Images, videos, and PDFs are stored at `https://media.markus.ink/...` URLs. Only project members can view them, so `curl` can't fetch them. Save them to a temporary directory with `node .markus/media.mjs <URL>…` and read the paths it prints (don't commit the fetched files).
+- Images, videos, audio, PDFs, and other files (CSV, Office, zip, and so on) are stored at `https://media.markus.ink/...` URLs. Only project members can view them, so `curl` can't fetch them. Save them to a temporary directory with `node .markus/media.mjs <URL>…` and read the paths it prints (don't commit the fetched files).
   - The first time, or when the link has expired, it prints a URL to open and a code, and stops (exit code 2). Pass that text to a person as is, and when they say they've approved it, run the same command again. Don't open a browser and approve it yourself.
   - Don't use this script for URLs on other sites (fetch them with `curl` or similar).
   - An image with `data-figma` is a Figma frame (a Figma block). The image is enough to see what the screen looks like. Only when you need exact values (spacing, colors, text styles, components, etc.), also fetch the `data-figma` URL with the same script. `spec.json` in the zip is the layer tree (coordinates are from the frame's top-left; it is large, so search for the layers you need), and `assets/` has the original icon and image files.
   - For videos, look at the `poster` image, and if needed, extract frames with `ffmpeg`. For YouTube videos (`<iframe>`) and bookmarks (`<bookmark>`), read the `title` to see what they are.
-- To put an image, video, or PDF on a page, upload it to Markus with `node .markus/media.mjs upload <file>…` and write the URL it prints (one line per file) on the page (see `pages.md` for how. Don't add the file to the repository). Only devices of people with the Editor role or higher in this project can upload. If it prints a linking code, pass it to a person, the same as when fetching.
+- To put a file on a page (an image, video, audio, PDF, or any other file), upload it to Markus with `node .markus/media.mjs upload <file>…` and write the URL it prints (one line per file) on the page (see `pages.md` for how. Don't add the file to the repository). Only devices of people with the Editor role or higher in this project can upload. If it prints a linking code, pass it to a person, the same as when fetching.
 - Commits saved from the Markus web have the Markus App (a bot) as the author. Check who actually made the change with the `Markus-User:` trailer in the commit message (the same applies to lines that `git blame` attributes to the bot).
 
 ### When someone gives you a location

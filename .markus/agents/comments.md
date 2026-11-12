@@ -57,7 +57,7 @@ Clues for comments on a whole block:
 |---|---|
 | `database` (embedded database) | `database: <database's ulid>` (the `ulid` in `_database.yml`) |
 | `sheet` (embedded sheet) | `sheet: <sheet's ulid>` |
-| `image`, `video`, `pdf` | `src: <file URL>` (YouTube videos are `video`, with the `<iframe>`'s `src`) |
+| `image`, `video`, `audio`, `pdf`, `file` (a file written as a link-only line) | `src: <file URL>` (YouTube videos are `video`, with the `<iframe>`'s `src`) |
 | `bookmark` | `src: <link URL>` (the `<bookmark>`'s `href`) |
 | `html`, `mermaid`, `code` | `quote`: the start of the content (up to 30 characters) |
 | `table` | `quote`: the first row's cell texts joined with `\|` (up to 30 characters) |

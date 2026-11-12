@@ -87,6 +87,10 @@ The collapsed content.
 
 <embed src="https://media.markus.ink/.../spec.pdf" type="application/pdf" title="spec.pdf" height="600">
 
+[estimate.xlsx](https://media.markus.ink/.../estimate.xlsx)
+
+<audio src="https://media.markus.ink/.../meeting.m4a" title="meeting.m4a"></audio>
+
 <video src="https://.../demo.mp4" poster="https://.../poster.jpg" title="Login flow"></video>
 
 <iframe src="https://www.youtube.com/embed/dQw4w9WgXcQ?start=90" height="400"></iframe>
@@ -121,6 +125,8 @@ tab: Monthly
   - Colors go on `<col color>` (column), `<tr color>` (row), and `<td color>` (cell); widths go on `<col width>` (px). If you don't need them, you can leave out `<colgroup>`.
   - Each cell is one line of Markdown; use `<br>` for line breaks.
 - Color names are `gray` `brown` `orange` `yellow` `green` `blue` `purple` `pink` `red`. For background colors, add `_bg` (`yellow_bg`). Don't use `style` attributes or hex color codes.
+  - To fill a whole paragraph, heading, or list item, wrap all of its text in one background-color `<span>` (`## <span color="blue_bg">Heading</span>`, `- <span color="yellow_bg">Item text</span>`). The Web app then fills the whole block.
+  - To use a text color and a background color together, write the text-color `<span>` inside the background-color `<span>` (`<span color="yellow_bg">before <span color="red">red part</span> after</span>`). Don't split the background-color `<span>` around the text color.
 - Use `<img>` only when you set the height. Otherwise use `![description](URL)`.
 - Write the `height` of images, videos, PDFs, YouTube, and ` ```html ` as a multiple of 50 (at least 50; up to 750 for images and videos), because the web resizes them in 50px steps.
 - A line with only images (and `<video>`s) separated by single spaces becomes a block of side-by-side images (a gallery). Don't put text on that line. If you set the height, give every image the same `height`.
@@ -152,9 +158,12 @@ The following 7 mistakes are not caught by the formatter afterwards (they become
 - To put an image or gallery under a list item, leave a blank line after the item's text and indent it (without the blank line, the image becomes part of the item's text).
 - Never write line breaks in image or video captions as is; write every one as `&#10;` (a raw line break cuts the caption at a blank line or a line starting with "#", "-", ">", etc., and it is no longer an image or video). Write an image with line breaks as `<img src="..." alt="Line 1&#10;Line 2">`, not `![...]`. For videos, write `title` the same way. Write `"` inside `alt` and `title` as `&quot;`.
 
-## 3. Images, videos, and PDFs
+## 3. Images, videos, audio, and files
 
-- Don't put images, videos, or PDFs in the repository. Use URLs uploaded to Markus (`https://media.markus.ink/...`). To upload one as an AI, run `node .markus/media.mjs upload <file>…` and write the URL it prints as `![alt text](URL)`, `<video src="URL" title="...">`, or `<embed src="URL" type="application/pdf" title="file name">`.
+- Don't put images, videos, audio, PDFs, or other files (CSV, Office, zip, HTML, anything) in the repository. Use URLs uploaded to Markus (`https://media.markus.ink/...`). To upload one as an AI, run `node .markus/media.mjs upload <file>…` and write the URL it prints as shown below.
+  - Images: `![alt text](URL)`. Videos: `<video src="URL" title="...">`. Audio: `<audio src="URL" title="file name"></audio>`.
+  - Other files: a line with only a link, `[file name](URL)` (on the web it becomes a one-line block with an icon and the name; clicking it shows or downloads the file). If the line has other text, it is an ordinary link. PDFs can be written this way too. Use `<embed src="URL" type="application/pdf" title="file name">` only when the PDF should be shown open inside the page.
+  - Write `<audio>` and file lines on one line at the start of a line, with an empty line before and after.
 - In an image's alt text, describe what the image shows in sentences. Only the first frame of a GIF is visible, so describe the motion in words too.
 - An `<img>` with `data-figma` is a Figma block. Don't create one as an AI (people place the zip exported with the Figma plugin on the web). When you move one, move `data-figma` with it and don't delete it (without it, the block becomes a plain image and the layers can no longer be viewed).
 - Place videos with `<video>` (`title` is the caption). For YouTube videos, use `<iframe src="https://www.youtube.com/embed/<ID>">` (start position with `?start=<seconds>`). Don't write any other `<iframe>`.
