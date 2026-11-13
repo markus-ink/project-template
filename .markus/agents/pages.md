@@ -177,5 +177,7 @@ The following 7 mistakes are not caught by the formatter afterwards (they become
   - It rewrites the file the same way the web writes it when saving (list markers, indentation, blank lines, table layout, etc.). You don't need to worry about these details.
   - Problems it can't fix are printed as `file:line reason` (that file is not changed). Read them, fix them, and repeat until nothing is printed.
   - If you wrote two blocks pointing to the same side page, it turns the second and later ones into duplicate side pages (new files).
+  - For a comment file, it finds the target in the page and writes the rest of the clues in `anchor`. If the target isn't in the page or can't be narrowed to one, it is reported as a problem it can't fix (`comments.md`).
+  - For a page, if the target of an open comment is no longer in the body, it prints `comment file:line reason` (it only prints; the page is still formatted).
   - Don't run it on files you didn't change (it would also rewrite what people wrote and, while syncing, the web draft).
-- When you change body text and the text a comment points to changes, update the comment too (`comments.md`).
+- When you change body text and the text a comment points to changes, update the comment too and format that file as well (`comments.md`). When you delete the text or block a comment points to, add `gone: true` to that thread's `anchor` (`comments.md`, section 4).

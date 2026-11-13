@@ -20,6 +20,8 @@ anchor:
   quote: "The reset URL expires after 24 hours"
   prefix: "In the email, "
   suffix: "."
+  before: "If you forget your password, we send a reset URL "
+  after: "If you open an expired URL, show the resend screen"
   section: "Rules"
 ---
 
@@ -37,7 +39,7 @@ The implementation (`src/auth/reset.ts`) uses 1 hour. Should I change the spec t
 | `status` | `open` (unresolved) or `resolved` |
 | `created_by`, `resolved_by` | Who started it and who resolved it. People are `handle`s; an AI is `ai:<person>` (`ai:alex`; `<person>` is the content of `.git/markus-user`, or `git config user.name` if it doesn't exist). `resolved_by` only when resolved |
 | `original_quote` | The text the comment pointed to when it was posted. Never change it afterwards |
-| `anchor` | Clues to find the target in the current body (table below) |
+| `anchor` | Clues to find the target in the current body (2 below). You write only part of it, such as `quote`; the formatter writes the rest |
 
 - Each comment is a `### <author> · <datetime>` heading with its body (Markdown) below. A heading ending with ` · edited <datetime>` (or ` · 編集 <datetime>`, written by someone using Markus in Japanese) is a comment its author edited.
 
@@ -46,10 +48,17 @@ The implementation (`src/auth/reset.ts`) uses 1 hour. Should I change the spec t
 | Target | `original_quote` | `anchor` |
 |---|---|---|
 | The whole page, database, or sheet | Don't write it | Don't write it |
-| Part of the body | The selected text | `type: text`, `quote` (the target text), `prefix`, `suffix` (the text right before and right after; up to 30 characters), `section` (the nearest heading containing the target) |
-| A whole block | Don't write it | `type: block`, `block` (the kind), the clue below, `section` |
+| Part of the body | The selected text | `type: text`, `quote` (the target text). Only when the same text appears more than once in the page, also write `prefix`, `suffix` (the text right before and right after; up to 30 characters) or `section` (the nearest heading containing the target) |
+| A whole block | Don't write it | `type: block`, `block` (the kind), the clue below. Only when more than one block has the same clue, also write `section` |
 
-- `quote`, `prefix`, and `suffix` must be text that appears in the page body exactly, character for character. Write the text as it appears on screen, without Markdown markup (`**`, `[...](...)`, etc.). `prefix` and `suffix` contain only text within the same block as the target (paragraph, heading, list item, table cell, etc.); omit them at the start or end of the block.
+- When you finish, pass the comment file to the formatter (`pages.md`). It finds the target in the page and writes the rest of the clues. Don't write or fix these yourself.
+  - `prefix`, `suffix`, `section`: added if you didn't write them.
+  - `before`, `after`: the start of the previous and next block.
+  - `row`, `column`: for text in a table cell, the row and column headings (the text of the first cell in the same row, and of the first-row cell in the same column).
+  - `index`: when there are several of the same, which one (from 0).
+- `gone: true` marks a comment whose target was deleted. The web writes it. You write it only when you delete the target (section 4).
+- `quote`, `prefix`, and `suffix` must be text that appears in the page body exactly, character for character. Write the text as it appears on screen, without Markdown markup (`**`, `[...](...)`, etc.). `prefix` and `suffix` contain only text within the same block as the target (paragraph, heading, list item, table cell, etc.); when the target is at the start or end of the block, omit that side (an omitted side is searched for as the start or end of a block).
+- If the formatter says the text isn't in the page, fix `quote`. If it says it can't be narrowed to one, add `prefix`, `suffix`, or `section`. If that still isn't enough, write `index` (which one among the same, from 0).
 
 Clues for comments on a whole block:
 
@@ -79,10 +88,14 @@ anchor:
 
 ## 4. When you change the body
 
-- When you change body text and the text a comment points to changes, update `anchor.quote` (and `prefix` and `suffix`) to the new text. Don't change `original_quote`.
+- When you change body text and the text a comment points to changes, update `anchor.quote` to the new text and pass the comment file to the formatter too (it brings the rest of the clues up to date). Don't change `original_quote`.
 - When you change the start of a block (the `quote` in the table above), update the `quote` of comments on that block to the new start too. The target is found by its start, so if you don't, it can no longer be found.
+- When you delete the text or block a comment points to, add `gone: true` to that thread's `anchor` (leave the other keys as they are). If you don't, and the same text or block still exists elsewhere in the page, the comment attaches to that one (a comment saying "this is a duplicate, please delete it" shows up on the one you kept).
+  - Before you delete text or a block from a page, look at the `quote` of the open threads in `.markus/comments/<page ulid>/` and check whether any of them points to what you are deleting.
+- A thread with `gone: true` is one whose target was deleted (on the web it is listed under "Not found"). Even if the same text is in the page, don't treat that as the comment's target. To attach it again after rewriting the target, update `quote` to the new text, remove the `gone` line, and pass the file to the formatter.
+- If you forget, passing the page to the formatter prints `comment file:line … is no longer in the page`. Do as above (if you rewrote the text, update `quote`; if you deleted it, add `gone: true`). Nothing is printed when the same text as the one you deleted still exists elsewhere, so add it yourself when you delete.
 
 ## 5. New threads
 
 - Create the thread's ulid with `node .markus/fmt.mjs --ulid`, and use it for the file name (`.markus/comments/<page's ulid>/<thread's ulid>.md`) and `ulid`.
-- In the shape of 1 above, write `page`, `status: open`, `created_by: ai:<person>`, and, depending on the target, `original_quote` and `anchor` (2 above). Below that, write the first comment under a `### ai:<person> · <datetime>` heading. When you finish, pass the file to the formatter (`pages.md`).
+- In the shape of 1 above, write `page`, `status: open`, `created_by: ai:<person>`, and, depending on the target, `original_quote` and `anchor` (2 above; for `anchor`, `quote` and the like are enough). Below that, write the first comment under a `### ai:<person> · <datetime>` heading. When you finish, pass the file to the formatter (`pages.md`).
