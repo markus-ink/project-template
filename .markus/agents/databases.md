@@ -7,7 +7,8 @@ These are the rules for creating or changing database rows, `_database.yml`, and
 ## 1. Databases and rows
 
 - Databases are under `databases/`. Each folder with a `_database.yml` is one database, and each `.md` inside it is one row (row = page).
-- Don't write the `ulid` of a new database or row; formatting adds it (`pages.md`; the sidebar is sorted by `ulid`, that is, in creation order). Don't write one by hand by imitating another example's `ulid`.
+- Don't write the `ulid` of a new database or row; formatting adds it (`pages.md`). Don't write one by hand by imitating another example's `ulid`.
+- The order of databases in the sidebar is the top-level `rank` in `_database.yml` (written when someone drags a database on the web). Don't write it for a new database (databases without a `rank` come after the ones that have one, by `ulid`, that is, in creation order). Don't change or remove an existing `rank` unless asked.
 - Row file names and `ulid`s work the same way as pages (`pages.md`).
 - A database created on the Markus web may have a folder name like `Untitled database 7KQX` (ending in the last 4 characters of its ulid; `無題のデータベース 7KQX` in Japanese), `Untitled database` or `Untitled database 2` until it's saved on the web, even though it has a name. This is normal: don't rename the folder, write to it as it is (the `database:` of database blocks on pages also points to that folder name), and don't point it out to the person. Markus renames the folder to match the name, and rewrites the blocks, when that database is saved.
 - `rank` is the order on boards and in manual sorting. You may omit it for new rows (rows without it come after the rows that have one, in creation order, that is, by `ulid`).

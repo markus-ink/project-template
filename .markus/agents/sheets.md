@@ -9,6 +9,7 @@ These are the rules for creating or changing sheet (spreadsheet) CSVs, `_sheet.y
 - Sheets are under `sheets/`. Each folder with a `_sheet.yml` is one sheet, with one CSV per tab (`sheets/Budget/Monthly.csv`). The file name is the tab name + `.csv`.
 - A sheet created on the Markus web may have a folder name like `Untitled sheet 7KQX` (ending in the last 4 characters of its ulid; `無題のシート 7KQX` in Japanese), `Untitled sheet` or `Untitled sheet 2` until it's saved on the web, even though it has a name. This is normal: don't rename the folder, write to it as it is (the `sheet:` of sheet blocks on pages also points to that folder name), and don't point it out to the person. Markus renames the folder to match the name, and rewrites the blocks, when that sheet is saved.
 - Don't write the `ulid` of a new sheet's `_sheet.yml`; formatting adds it (`pages.md`). Don't write one by hand by imitating another example's `ulid`.
+- The order of sheets in the sidebar is the top-level `rank` in `_sheet.yml` (written when someone drags a sheet on the web). Don't write it for a new sheet (sheets without a `rank` come after the ones that have one, by `ulid`, that is, in creation order). Don't change or remove an existing `rank` unless asked.
 - **Write values in the CSV.** Don't write appearance in the CSV (that goes in `_sheet.yml`).
 
 ```csv
