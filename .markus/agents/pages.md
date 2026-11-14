@@ -131,6 +131,7 @@ tab: Monthly
 - Write the `height` of images, videos, PDFs, YouTube, and ` ```html ` as a multiple of 50 (at least 50; up to 750 for images and videos), because the web resizes them in 50px steps.
 - A line with only images (and `<video>`s) separated by single spaces becomes a block of side-by-side images (a gallery). Don't put text on that line. If you set the height, give every image the same `height`.
 - ` ```html ` is not code; it becomes a live screen (such as a screen mockup). Write it as a single document starting with `<!DOCTYPE html>`.
+- `<formula ref="…"></formula>` and ` ```markus-formula ` are a formula (a value calculated from files, shown in the text). Read `formulas.md` before writing one. The functions that read databases and sheets inside ` ```html ` are also in `formulas.md`. Don't write a value inside `<formula>`. When you delete a formula block, delete its `<formula>` too.
 - ` ```markus-db ` and ` ```markus-sheet ` embed a database or sheet. For the keys you can write, read `databases.md` and `sheets.md`. ` ```markus-page ` is a side page (1).
 - A paragraph containing only `&nbsp;` is an empty line someone added on the web. Don't delete it.
 
