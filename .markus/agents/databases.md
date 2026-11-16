@@ -44,7 +44,7 @@ view:                             # The view of the database page (the full page
 | Type | How to write it in a row's frontmatter | Notes |
 |---|---|---|
 | `text` | `Notes: some text` | |
-| `number` | `Estimate (h): 3` | |
+| `number` | `Estimate (h): 3` | Write only the number in rows (not `$1,200`, `"1,200"`, or `50%`). To show it as a currency or a percentage, add `format` to the definition (`Revenue: { type: number, format: dollar }`). `format` is one of `number_with_commas` (1,200), `percent`, `yen`, `dollar`, `euro`, `pound`, `yuan`, `won`. For a `percent` property, write the number as it should appear (50% is `50`, not the ratio `0.5`). `decimals: 1` sets the number of decimal places |
 | `select` | `Priority: High` | Options are defined in `options` |
 | `multi_select` | `Labels: [UI, Auth]` | Defining options is optional |
 | `status` | `Status: In progress` | Like select, but can't be empty. New rows get the `default` |
