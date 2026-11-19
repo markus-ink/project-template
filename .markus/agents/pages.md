@@ -25,7 +25,7 @@ title: Login
 - If you need a ULID before formatting (for example, to link to the page), create one with `node .markus/fmt.mjs --ulid`.
 - Don't delete or reorder keys you don't know.
 - Don't write the title as a heading at the top of the body (`# Title`). The title lives only in `title`.
-- `rank` is the order within the same folder. You may omit it for new pages (they are sorted by title).
+- `rank` is the order within the same folder. You may omit it for new pages (they come after the pages that have a `rank`, in the order they were created, that is, by `ulid`; they are not sorted by name). Write `rank` only when you want a specific order.
 - A folder's order is the `rank` in that folder's `_folder.yml`. You don't need to create it for a new folder.
 - Write internal links with the target's `ulid`: `[Password reset](markus:01M40K9K80H877GNPBH4V44450)`. Use the target's title as the link text.
 
