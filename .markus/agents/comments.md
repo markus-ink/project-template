@@ -56,7 +56,7 @@ The implementation (`src/auth/reset.ts`) uses 1 hour. Should I change the spec t
   - `before`, `after`: the start of the previous and next block.
   - `row`, `column`: for text in a table cell, the row and column headings (the text of the first cell in the same row, and of the first-row cell in the same column).
   - `index`: when there are several of the same, which one (from 0).
-- `gone: true` marks a comment whose target was deleted. The web writes it. You write it only when you delete the target (section 4).
+- `gone: true` marks a comment whose target was deleted. Markus writes it. You write it only when you delete the target (section 4).
 - `quote`, `prefix`, and `suffix` must be text that appears in the page body exactly, character for character. Write the text as it appears on screen, without Markdown markup (`**`, `[...](...)`, etc.). `prefix` and `suffix` contain only text within the same block as the target (paragraph, heading, list item, table cell, etc.); when the target is at the start or end of the block, omit that side (an omitted side is searched for as the start or end of a block).
 - If the formatter says the text isn't in the page, fix `quote`. If it says it can't be narrowed to one, add `prefix`, `suffix`, or `section`. If that still isn't enough, write `index` (which one among the same, from 0).
 
@@ -92,7 +92,7 @@ anchor:
 - When you change the start of a block (the `quote` in the table above), update the `quote` of comments on that block to the new start too. The target is found by its start, so if you don't, it can no longer be found.
 - When you delete the text or block a comment points to, add `gone: true` to that thread's `anchor` (leave the other keys as they are). If you don't, and the same text or block still exists elsewhere in the page, the comment attaches to that one (a comment saying "this is a duplicate, please delete it" shows up on the one you kept).
   - Before you delete text or a block from a page, look at the `quote` of the open threads in `.markus/comments/<page ulid>/` and check whether any of them points to what you are deleting.
-- A thread with `gone: true` is one whose target was deleted (on the web it is listed under "Not found"). Even if the same text is in the page, don't treat that as the comment's target. To attach it again after rewriting the target, update `quote` to the new text, remove the `gone` line, and pass the file to the formatter.
+- A thread with `gone: true` is one whose target was deleted (in Markus it is listed under "Not found"). Even if the same text is in the page, don't treat that as the comment's target. To attach it again after rewriting the target, update `quote` to the new text, remove the `gone` line, and pass the file to the formatter.
 - If you forget, passing the page to the formatter prints `comment file:line … is no longer in the page`. Do as above (if you rewrote the text, update `quote`; if you deleted it, add `gone: true`). Nothing is printed when the same text as the one you deleted still exists elsewhere, so add it yourself when you delete.
 
 ## 5. New threads

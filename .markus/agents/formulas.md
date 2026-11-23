@@ -18,9 +18,9 @@ return rows.filter((t) => t.Status !== "Done").length;
 ````
 
 - Write `<formula ref="…"></formula>` inside text (a paragraph, heading, list item, or table cell). It can also go inside formatting such as `**`.
-- **Don't write the calculated value.** Leave `<formula>` empty. The web calculates the value every time the page is opened. A number you write there is not read, and goes stale when the data changes.
-- Write ` ```markus-formula id="…" ` right below the paragraph, list, or table that uses it. Don't write it inside a list item, callout, or toggle (write it after them). The web doesn't show this block (clicking the value in the text opens the code).
-- `id` is a name that is unique on the page. Use lowercase letters, digits, and hyphens, and make it say what the value is (`open-tasks`). Formulas created on the web get names like `f-3k9x`. Leave them as they are.
+- **Don't write the calculated value.** Leave `<formula>` empty. Markus calculates the value every time the page is opened. A number you write there is not read, and goes stale when the data changes.
+- Write ` ```markus-formula id="…" ` right below the paragraph, list, or table that uses it. Don't write it inside a list item, callout, or toggle (write it after them). Markus doesn't show this block (clicking the value in the text opens the code).
+- `id` is a name that is unique on the page. Use lowercase letters, digits, and hyphens, and make it say what the value is (`open-tasks`). Formulas created in Markus get names like `f-3k9x`. Leave them as they are.
 - To show the same value in several places, write the same `ref` (with one formula block).
 - When a formula is no longer used, delete both the `<formula>` and its block.
 
@@ -108,7 +108,7 @@ document.getElementById("out").textContent = `${done} of ${rows.length} done`;
 ```
 ````
 
-- The web redraws an HTML block that uses these functions when a file it read changes.
+- Markus redraws an HTML block that uses these functions when a file it read changes.
 - Unlike a formula, an HTML block can load outside scripts (from a CDN). A loaded script can also see the files the block reads. Load only scripts you trust.
 - The other rules for writing HTML are in `pages.md`.
 

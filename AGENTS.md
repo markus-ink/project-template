@@ -1,29 +1,29 @@
 # AGENTS.md
 
-<!-- markus:begin v56 -->
+<!-- markus:begin v58 -->
 <!-- Markus rewrites everything between these markers (Markus rules). Do not change it. To add rules, write them under "Project rules" below. -->
 
-This repository is a spec repository managed by **Markus**. People edit it from the Markus web UI, and AI agents edit the files in this folder directly. Because it is edited from both sides at the same time, follow the rules below. If they conflict with "Project rules" below, these rules take precedence.
+This repository is a spec repository managed by **Markus**. People edit it from the Markus editor, and AI agents edit the files in this folder directly. Because it is edited from both sides at the same time, follow the rules below. If they conflict with "Project rules" below, these rules take precedence.
 
 ## 1. Before you start
 
-- First, run `node .markus/sync.mjs`. Its first line says whether this folder is a **folder written out by Markus** (the Markus web created it by syncing; it is not a clone and has no remote) or a **clone**, and then it gets the folder up to date. You don't need to check which it is yourself (the difference is whether `.git/markus-project` exists). It reads `.git` and uses the network, so if you run in a sandbox, run it outside the sandbox from the start.
+- First, run `node .markus/sync.mjs`. Its first line says whether this folder is a **folder written out by Markus** (Markus created it by syncing; it is not a clone and has no remote) or a **clone**, and then it gets the folder up to date. You don't need to check which it is yourself (the difference is whether `.git/markus-project` exists). It reads `.git` and uses the network, so if you run in a sandbox, run it outside the sandbox from the start.
   - Exit code 1 means: do what the message says. Don't change any files until it is fixed. If you can't fix it, tell a person.
-- The Markus web may be syncing with this folder ("Sync with local folder" in the web settings). While it syncs, what people write on the web is written to the files in this folder right away, and what you change shows up on the web. You can tell whether it is syncing with `find .git/markus-sync -mmin -2` (if it prints anything, it is syncing).
-  - While syncing, uncommitted changes shown by `git status` and `git diff` are what has not been saved on the web yet (including your changes). Don't discard, revert, or stash them (`git reset --hard`, `git checkout .`, `git clean`, or `git stash` also wipes out the web draft). You don't need to report them to anyone.
+- Markus may be syncing with this folder ("Sync with local folder" in project settings). While it syncs, what people write in Markus is written to the files in this folder right away, and what you change shows up in Markus. You can tell whether it is syncing with `find .git/markus-sync -mmin -2` (if it prints anything, it is syncing).
+  - While syncing, uncommitted changes shown by `git status` and `git diff` can include unsaved edits in Markus as well as your own changes. Don't discard, revert, or stash them (`git reset --hard`, `git checkout .`, `git clean`, or `git stash` also wipes out the draft in Markus). You don't need to report them to anyone.
 - In a **folder written out by Markus**:
-  - Always use it while syncing. If it is not syncing, your changes would not show up on the web, so don't change any files (`sync.mjs` stops with exit code 1). Ask a person to start syncing on the Markus web.
-  - `.git` is written out by the Markus web and is read-only. You may look at history with `git log`, `git show`, and `git blame` (if git is not installed, you can't; install git or ask a person). Don't pull, commit, or push (see 4).
+  - Always use it while syncing. If it is not syncing, your changes would not show up in Markus, so don't change any files (`sync.mjs` stops with exit code 1). Tell the person, "Resume syncing this folder in Markus."
+  - `.git` is written out by Markus and is read-only. You may look at history with `git log`, `git show`, and `git blame` (if git is not installed, you can't; install git or ask a person). Don't pull, commit, or push (see 4).
 - In a **clone**:
-  - `sync.mjs` runs `git pull --rebase --autostash` if the web is not syncing, and `git fetch` → `git reset @{u}` if it is.
-  - While syncing, if you only read file contents, you don't need to update (the contents are already up to date). Update before you look at history (`git log`, `git show`, `git blame`, etc.) and before you change anything (while syncing, the git history lags behind what the web has saved).
-  - While syncing, don't run `git pull` yourself (it stops if a page was newly created on the web).
-  - Exit code 2 means the web is syncing and there are commits that have not been pushed. Don't run `git reset @{u}` (those commits would be lost). Ask a person.
-  - When you commit while syncing, `git add` only the files you changed (don't mix in the web draft with `git add -A`).
+  - `sync.mjs` runs `git pull --rebase --autostash` if the folder is not syncing with Markus, and `git fetch` → `git reset @{u}` if it is.
+  - While syncing, if you only read file contents, you don't need to update (the contents are already up to date). Update before you look at history (`git log`, `git show`, `git blame`, etc.) and before you change anything (while syncing, the git history lags behind what's saved in Markus).
+  - While syncing, don't run `git pull` yourself (it stops if a page was newly created in Markus).
+  - Exit code 2 means the folder is syncing with Markus and there are commits that have not been pushed. Don't run `git reset @{u}` (those commits would be lost). Ask a person.
+  - When you commit while syncing, `git add` only the files you changed (don't mix in the draft in Markus with `git add -A`).
 
 ## 2. Always read before writing
 
-Before you create or change a file, always read the file below. If you write without reading it, you will produce files that the Markus web can't open or displays incorrectly.
+Before you create or change a file, always read the file below. If you write without reading it, you will produce files that Markus can't open or displays incorrectly.
 
 | What you write | Read first |
 |---|---|
@@ -50,7 +50,7 @@ Before you create or change a file, always read the file below. If you write wit
 | `.markus/members.yml` | Members' `handle`s and names (person values in databases are `handle`s) |
 
 - When you read a page, side page or database row, also read all of its comments (the files in `.markus/comments/<its ulid>/`, resolved threads included; if the folder doesn't exist, it has no comments). They may disagree with the body, point out what isn't decided yet, or explain why something was decided.
-- A `<formula ref="…"></formula>` in text is where the web shows a value calculated from files (a count, a sum, and so on). The value is not written in the file. When you need it, calculate it with `node .markus/formula.mjs <page>…` (it prints `id = value` for each formula). The code is in ` ```markus-formula id="…" ` on the same page.
+- A `<formula ref="…"></formula>` in text is where Markus shows a value calculated from files (a count, a sum, and so on). The value is not written in the file. When you need it, calculate it with `node .markus/formula.mjs <page>…` (it prints `id = value` for each formula). The code is in ` ```markus-formula id="…" ` on the same page.
 - Internal links are `[Title](markus:<ulid>)`. Find the target with `grep -rl "ulid: <ulid>" docs/ databases/ sheets/ sidepages/` (for a database or sheet, you will find its `_database.yml` or `_sheet.yml`). Find a side page's parent with the same grep (the files it prints, minus the side page itself, are the parent).
   - A link to a sheet tab is `[Sheet name / Tab name](markus:<ulid of _sheet.yml>#<tab name>)`. In the tab name, percent-encode (`%XX`) only spaces and `(` `)` `<` `>` `[` `]` `%` `#` `\`, and write every other character as is, including non-ASCII ones (`Top 5 (beta)` → `Top%205%20%28beta%29`).
 - Images, videos, audio, PDFs, and other files (CSV, Office, zip, and so on) are stored at `https://media.markus.ink/...` URLs. Only project members can view them, so `curl` can't fetch them. Save them to a temporary directory with `node .markus/media.mjs <URL>…` and read the paths it prints (don't commit the fetched files).
@@ -59,7 +59,7 @@ Before you create or change a file, always read the file below. If you write wit
   - An image with `data-figma` is a Figma frame (a Figma block). The image is enough to see what the screen looks like. Only when you need exact values (spacing, colors, text styles, components, etc.), also fetch the `data-figma` URL with the same script. `spec.json` in the zip is the layer tree (coordinates are from the frame's top-left; it is large, so search for the layers you need), and `assets/` has the original icon and image files.
   - For videos, look at the `poster` image, and if needed, extract frames with `ffmpeg`. For YouTube videos (`<iframe>`) and bookmarks (`<bookmark>`), read the `title` to see what they are.
 - To put a file on a page (an image, video, audio, PDF, or any other file), upload it to Markus with `node .markus/media.mjs upload <file>…` and write the URL it prints (one line per file) on the page (see `pages.md` for how. Don't add the file to the repository). Only devices of people with the Editor role or higher in this project can upload. If it prints a linking code, pass it to a person, the same as when fetching.
-- Commits saved from the Markus web have the Markus App (a bot) as the author. Check who actually made the change with the `Markus-User:` trailer in the commit message (the same applies to lines that `git blame` attributes to the bot).
+- Commits saved from Markus have the Markus App (a bot) as the author. Check who actually made the change with the `Markus-User:` trailer in the commit message (the same applies to lines that `git blame` attributes to the bot).
 
 ### When someone gives you a location
 
@@ -68,23 +68,23 @@ Before you create or change a file, always read the file below. If you write wit
 | `docs/Features/Login.md`, `docs/Features/` | A path from the top of the repository (a trailing `/` means a folder) |
 | `docs/Features/Login.md:42-48` | Lines 42–48 of that file. Count from line 1, including the frontmatter |
 | `sheets/Budget/Monthly.csv B2:D7` | Rows 2–7, columns B–D of that CSV |
-| A Markus web URL (`https://…/p/<project>/…`) | Don't open it (it requires login). Find the file by the ulid in the URL as above (`?row=<ulid>` is a database row). In `…/-/<path>`, what follows `-/` is the path |
+| A Markus project link (`https://…/p/<project>/…`) | Don't open it (it requires login). Find the file by the ulid in the URL as above (`?row=<ulid>` is a database row). In `…/-/<path>`, what follows `-/` is the path |
 
 - If the lines you were given don't match what the person is talking about, this folder is out of date. Update it as described in 1.
 
 ### When you tell someone a location
 
-- If the web is syncing, the `url:` line in `.git/markus-sync` is the project's web URL (`<url>`). Use the file's ulid to link to the URLs below.
+- If Markus is syncing with this folder, the `url:` line in `.git/markus-sync` is the link to the project in Markus (`<url>`). Use the file's ulid to link to the URLs below.
   - A page or database row is `<url>/<ulid>`, a database is `<url>/db/<ulid of _database.yml>`, a sheet is `<url>/sheet/<ulid of _sheet.yml>`, and a comment is `<url>/<page's ulid>?thread=<thread's ulid>` (a comment on a whole database or sheet is `<url>/db/<ulid>?thread=…` or `<url>/sheet/<ulid>?thread=…`).
-  - A place inside a page is `<url>/<page's ulid>?block=<text at the start of the block>`. Use up to 30 characters, URL-encoded. Write the text as it appears on the web (no `## `, `- `, `**`, or other markup). If an earlier block starts with the same text, add `&n=<which one>`.
-- If there is no `url:` line, the web isn't syncing, or there is no ulid yet, write the path from the top of the repository (`docs/Features/Login.md`). Don't share paths on your machine like `/Users/…`, because others can't open them.
+  - A place inside a page is `<url>/<page's ulid>?block=<text at the start of the block>`. Use up to 30 characters, URL-encoded. Write the text as it appears in Markus (no `## `, `- `, `**`, or other markup). If an earlier block starts with the same text, add `&n=<which one>`.
+- If there is no `url:` line, the folder isn't syncing with Markus, or there is no ulid yet, write the path from the top of the repository (`docs/Features/Login.md`). Don't share paths on your machine like `/Users/…`, because others can't open them.
 
 ## 4. Commit and push
 
-- In a **folder written out by Markus**: don't commit or push. People save on the Markus web (your changes show up there as unsaved changes). When you finish, say "Please review it on the web and save". A commit isn't kept on the web and disappears the next time the web updates `.git`. There is nowhere to push to.
+- In a **folder written out by Markus**: don't commit or push. People save in Markus (your changes show up there as unsaved changes). When you finish, say "Review and save the changes in Markus". A commit isn't kept in Markus and disappears the next time Markus updates `.git`. There is nowhere to push to.
 - In a **clone**:
-  - Don't commit or push unless asked (people want to check your changes on the web before saving). When you finish, if the web is syncing, say "Please review it on the web and save"; if not, ask whether you may push.
-  - When you push, update again as described in 1, then commit and push right away (if syncing, `git add` only the files you changed). If the web is syncing and the push is rejected, start over from `git fetch` → `git reset @{u}` (your commit is lost, but its changes stay in the files; `.markus/sync.mjs` stops when there are unpushed commits, so type these commands yourself only here).
+  - Don't commit or push unless asked (people want to check your changes in Markus before saving). When you finish, if the folder is syncing with Markus, say "Review and save the changes in Markus"; if not, ask whether you may push.
+  - When you push, update again as described in 1, then commit and push right away (if syncing, `git add` only the files you changed). If Markus is syncing with this folder and the push is rejected, start over from `git fetch` → `git reset @{u}` (your commit is lost, but its changes stay in the files; `.markus/sync.mjs` stops when there are unpushed commits, so type these commands yourself only here).
 
 <!-- markus:end -->
 

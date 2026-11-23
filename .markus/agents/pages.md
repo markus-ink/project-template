@@ -7,12 +7,12 @@ These are the rules for creating or changing pages (`.md` in `docs/`), side page
 ## 1. Page files
 
 - A page is a `.md` file. Folders are directories.
-- Always put pages under `docs/`. A `.md` placed outside `docs/` doesn't appear on the Markus web.
+- Always put pages under `docs/`. A `.md` placed outside `docs/` doesn't appear in Markus.
 - The file name is made from the page title. The real title is `title` in the frontmatter.
   - Replace characters that can't be used in file names, `/ \ : * ? " < > |`, with their full-width forms (`/` → `／`). Use at most the first 50 characters of the title. If the same name already exists in the folder, add " 2" (`Untitled 2.md`).
-  - A page or row created on the Markus web may have a file name like `Untitled 7KQX.md` ("Untitled" and the last 4 characters of its ulid; `無題 7KQX.md` in Japanese), `Untitled.md` or `Untitled 2.md` until it's saved on the web, even though it has a title. This is normal: don't rename the file, write to it as it is, and don't point it out to the person. Markus renames it to match the title when that page is saved.
+  - A page or row created in Markus may have a file name like `Untitled 7KQX.md` ("Untitled" and the last 4 characters of its ulid; `無題 7KQX.md` in Japanese), `Untitled.md` or `Untitled 2.md` until it's saved in Markus, even though it has a title. This is normal: don't rename the file, write to it as it is, and don't point it out to the person. Markus renames it to match the title when that page is saved.
 - The frontmatter has only `ulid`, `title` (required), and `rank` and `icon` (optional). Don't add other properties to regular pages (only database rows have properties).
-- `icon` is one emoji used as the page's icon (`icon: 🔐`; on the web it shows left of the title and in the sidebar). Don't add or change it unless asked. Database rows and side pages work the same way.
+- `icon` is one emoji used as the page's icon (`icon: 🔐`; in Markus it shows left of the title and in the sidebar). Don't add or change it unless asked. Database rows and side pages work the same way.
 
 ```yaml
 ---
@@ -44,7 +44,7 @@ ulid: 01JC2M4N6P8R0S2T4V6W8X0Y2Z
 
 ## 2. Body syntax
 
-Use GFM as the base, plus the Markus syntax below. Don't invent tags or syntax that aren't listed here (Markus shows them as plain text or drops them). If you're unsure how to write something, imitate pages saved from the Markus web (commits whose author is the Markus App).
+Use GFM as the base, plus the Markus syntax below. Don't invent tags or syntax that aren't listed here (Markus shows them as plain text or drops them). If you're unsure how to write something, imitate pages saved from Markus (commits whose author is the Markus App).
 
 ````markdown
 Passwords must be <span color="red">at least 8 characters</span>. You can also add a <span color="yellow_bg">background color</span>.
@@ -120,20 +120,20 @@ tab: Monthly
 ```
 ````
 
-- Always write tables with `<table>`. Don't use GFM tables (`| a | b |`) (they can't express colors, widths, or headers, and are fully rewritten when saved on the web).
+- Always write tables with `<table>`. Don't use GFM tables (`| a | b |`) (they can't express colors, widths, or headers, and are fully rewritten when saved in Markus).
   - Always write both `header-row` (make the first row a header) and `header-column` (make the first column a header). Write header cells with `<td>` too.
   - Colors go on `<col color>` (column), `<tr color>` (row), and `<td color>` (cell); widths go on `<col width>` (px). If you don't need them, you can leave out `<colgroup>`.
   - Each cell is one line of Markdown; use `<br>` for line breaks.
 - Color names are `gray` `brown` `orange` `yellow` `green` `blue` `purple` `pink` `red`. For background colors, add `_bg` (`yellow_bg`). Don't use `style` attributes or hex color codes.
-  - To fill a whole paragraph, heading, or list item, wrap all of its text in one background-color `<span>` (`## <span color="blue_bg">Heading</span>`, `- <span color="yellow_bg">Item text</span>`). The Web app then fills the whole block.
+  - To fill a whole paragraph, heading, or list item, wrap all of its text in one background-color `<span>` (`## <span color="blue_bg">Heading</span>`, `- <span color="yellow_bg">Item text</span>`). Markus then fills the whole block.
   - To use a text color and a background color together, write the text-color `<span>` inside the background-color `<span>` (`<span color="yellow_bg">before <span color="red">red part</span> after</span>`). Don't split the background-color `<span>` around the text color.
 - Use `<img>` only when you set the height. Otherwise use `![description](URL)`.
-- Write the `height` of images, videos, PDFs, YouTube, and ` ```html ` as a multiple of 50 (at least 50; up to 750 for images and videos), because the web resizes them in 50px steps.
+- Write the `height` of images, videos, PDFs, YouTube, and ` ```html ` as a multiple of 50 (at least 50; up to 750 for images and videos), because Markus resizes them in 50px steps.
 - A line with only images (and `<video>`s) separated by single spaces becomes a block of side-by-side images (a gallery). Don't put text on that line. If you set the height, give every image the same `height`.
 - ` ```html ` is not code; it becomes a live screen (such as a screen mockup). Write it as a single document starting with `<!DOCTYPE html>`.
 - `<formula ref="…"></formula>` and ` ```markus-formula ` are a formula (a value calculated from files, shown in the text). Read `formulas.md` before writing one. The functions that read databases and sheets inside ` ```html ` are also in `formulas.md`. Don't write a value inside `<formula>`. When you delete a formula block, delete its `<formula>` too.
 - ` ```markus-db ` and ` ```markus-sheet ` embed a database or sheet. For the keys you can write, read `databases.md` and `sheets.md`. ` ```markus-page ` is a side page (1).
-- A paragraph containing only `&nbsp;` is an empty line someone added on the web. Don't delete it.
+- A paragraph containing only `&nbsp;` is an empty line someone added in Markus. Don't delete it.
 
 Markus doesn't have the following. Don't write them; use what's on the right instead.
 
@@ -163,10 +163,10 @@ The following 7 mistakes are not caught by the formatter afterwards (they become
 
 - Don't put images, videos, audio, PDFs, or other files (CSV, Office, zip, HTML, anything) in the repository. Use URLs uploaded to Markus (`https://media.markus.ink/...`). To upload one as an AI, run `node .markus/media.mjs upload <file>…` and write the URL it prints as shown below.
   - Images: `![alt text](URL)`. Videos: `<video src="URL" title="...">`. Audio: `<audio src="URL" title="file name"></audio>`.
-  - Other files: a line with only a link, `[file name](URL)` (on the web it becomes a one-line block with an icon and the name; clicking it shows or downloads the file). If the line has other text, it is an ordinary link. PDFs can be written this way too. Use `<embed src="URL" type="application/pdf" title="file name">` only when the PDF should be shown open inside the page.
+  - Other files: a line with only a link, `[file name](URL)` (in Markus it becomes a one-line block with an icon and the name; clicking it shows or downloads the file). If the line has other text, it is an ordinary link. PDFs can be written this way too. Use `<embed src="URL" type="application/pdf" title="file name">` only when the PDF should be shown open inside the page.
   - Write `<audio>` and file lines on one line at the start of a line, with an empty line before and after.
 - In an image's alt text, describe what the image shows in sentences. Only the first frame of a GIF is visible, so describe the motion in words too.
-- An `<img>` with `data-figma` is a Figma block. Don't create one as an AI (people place the zip exported with the Figma plugin on the web). When you move one, move `data-figma` with it and don't delete it (without it, the block becomes a plain image and the layers can no longer be viewed).
+- An `<img>` with `data-figma` is a Figma block. Don't create one as an AI (people place the zip exported with the Figma plugin in Markus). When you move one, move `data-figma` with it and don't delete it (without it, the block becomes a plain image and the layers can no longer be viewed).
 - Place videos with `<video>` (`title` is the caption). For YouTube videos, use `<iframe src="https://www.youtube.com/embed/<ID>">` (start position with `?start=<seconds>`). Don't write any other `<iframe>`.
 - To show a link as a card, write `<bookmark href="<URL>" title="<title>"></bookmark>`. Add `description`, `image` (thumbnail URL), and `icon` (icon URL) if you know them. In attribute values, write `"` as `&quot;` and `&` as `&amp;`, and don't include line breaks.
 - Write `<iframe>` and `<bookmark>` on a single line at the start of the line, with a blank line before and after.
@@ -175,10 +175,10 @@ The following 7 mistakes are not caught by the formatter afterwards (they become
 
 - When you finish writing `.md` files (pages, side pages, database rows, templates), `_database.yml`, `_sheet.yml`, or comments, pass the files you changed to the formatter: `node .markus/fmt.mjs docs/Features/Login.md …`
   - It adds a `ulid` if there is none. A malformed `ulid`, a time in the future, or an old time on a new file (copied from another file) are reported as problems it can't fix.
-  - It rewrites the file the same way the web writes it when saving (list markers, indentation, blank lines, table layout, etc.). You don't need to worry about these details.
+  - It rewrites the file the same way Markus writes it when saving (list markers, indentation, blank lines, table layout, etc.). You don't need to worry about these details.
   - Problems it can't fix are printed as `file:line reason` (that file is not changed). Read them, fix them, and repeat until nothing is printed.
   - If you wrote two blocks pointing to the same side page, it turns the second and later ones into duplicate side pages (new files).
   - For a comment file, it finds the target in the page and writes the rest of the clues in `anchor`. If the target isn't in the page or can't be narrowed to one, it is reported as a problem it can't fix (`comments.md`).
   - For a page, if the target of an open comment is no longer in the body, it prints `comment file:line reason` (it only prints; the page is still formatted).
-  - Don't run it on files you didn't change (it would also rewrite what people wrote and, while syncing, the web draft).
+  - Don't run it on files you didn't change (it would also rewrite what people wrote and, while syncing, the draft in Markus).
 - When you change body text and the text a comment points to changes, update the comment too and format that file as well (`comments.md`). When you delete the text or block a comment points to, add `gone: true` to that thread's `anchor` (`comments.md`, section 4).

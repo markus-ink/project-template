@@ -8,11 +8,11 @@ These are the rules for creating or changing database rows, `_database.yml`, and
 
 - Databases are under `databases/`. Each folder with a `_database.yml` is one database, and each `.md` inside it is one row (row = page).
 - Don't write the `ulid` of a new database or row; formatting adds it (`pages.md`). Don't write one by hand by imitating another example's `ulid`.
-- The order of databases in the sidebar is the top-level `rank` in `_database.yml` (written when someone drags a database on the web). Don't write it for a new database (databases without a `rank` come after the ones that have one, by `ulid`, that is, in creation order). Don't change or remove an existing `rank` unless asked.
+- The order of databases in the sidebar is the top-level `rank` in `_database.yml` (written when someone drags a database in Markus). Don't write it for a new database (databases without a `rank` come after the ones that have one, by `ulid`, that is, in creation order). Don't change or remove an existing `rank` unless asked.
 - Row file names and `ulid`s work the same way as pages (`pages.md`).
-- A database created on the Markus web may have a folder name like `Untitled database 7KQX` (ending in the last 4 characters of its ulid; `無題のデータベース 7KQX` in Japanese), `Untitled database` or `Untitled database 2` until it's saved on the web, even though it has a name. This is normal: don't rename the folder, write to it as it is (the `database:` of database blocks on pages also points to that folder name), and don't point it out to the person. Markus renames the folder to match the name, and rewrites the blocks, when that database is saved.
+- A database created in Markus may have a folder name like `Untitled database 7KQX` (ending in the last 4 characters of its ulid; `無題のデータベース 7KQX` in Japanese), `Untitled database` or `Untitled database 2` until it's saved in Markus, even though it has a name. This is normal: don't rename the folder, write to it as it is (the `database:` of database blocks on pages also points to that folder name), and don't point it out to the person. Markus renames the folder to match the name, and rewrites the blocks, when that database is saved.
 - `rank` is the order on boards and in manual sorting. You may omit it for new rows (rows without it come after the rows that have one, in creation order, that is, by `ulid`).
-- Express a hand-picked order with `rank` (dragging rows on the web rewrites it). Don't create a property only for sorting (such as "List order"): if you use it in `sort`, dragging on the web no longer changes the order.
+- Express a hand-picked order with `rank` (dragging rows in Markus rewrites it). Don't create a property only for sorting (such as "List order"): if you use it in `sort`, dragging in Markus no longer changes the order.
 
 ## 2. `_database.yml`
 
@@ -52,7 +52,7 @@ view:                             # The view of the database page (the full page
 | `person` | `Assignee: alex`, `[alex, sam]` | A `handle` from `.markus/members.yml` |
 | `checkbox` | `Approved: true` | |
 | `url` | `Figma: https://...` | |
-| `files` | `[{ name: spec.pdf, url: https://media.markus.ink/... }]` | Upload files on the Markus web or with `node .markus/media.mjs upload <file>`, and write the URL it prints in `url` |
+| `files` | `[{ name: spec.pdf, url: https://media.markus.ink/... }]` | Upload files in Markus or with `node .markus/media.mjs upload <file>`, and write the URL it prints in `url` |
 | `relation` | `Blocked by: [01M1C8S2..., 01M1EDEA...]` | A list of `ulid`s of rows in the same database. A property with `reverse_of: Blocked by` is the reverse direction; don't write its value |
 | `created_time` | Don't write it | Created time. Shows the time of the row's `ulid` |
 | `created_by` | Don't write it | Created by. Shows the row's `created_by`. Don't write a value under the property's name |
@@ -81,19 +81,19 @@ Due: 2026-11-10
 ---
 ```
 
-- Write property and option names exactly as they are in `_database.yml` (`Status: In progress`), including capitalization and spaces. The web shows the same names. Don't turn them into other keys (such as `status` or `in_progress`) or reword them.
-- To rename, do it on the Markus web (rows, templates, views, and blocks on pages that show the database are rewritten together). If you rename by hand, rewrite all of them in the same commit.
+- Write property and option names exactly as they are in `_database.yml` (`Status: In progress`), including capitalization and spaces. Markus shows the same names. Don't turn them into other keys (such as `status` or `in_progress`) or reword them.
+- To rename, do it in Markus (rows, templates, views, and blocks on pages that show the database are rewritten together). If you rename by hand, rewrite all of them in the same commit.
 - Write values as in the type table in 2 above. For values that refer to people, use the `handle` from `.markus/members.yml` (don't write email addresses).
 - In a database with `key_prefix`, don't write `key` on new rows. The formatter assigns the next number and increments `_counter.yml` (`next: 8`) in the same folder. Don't choose numbers yourself or edit `_counter.yml` by hand.
   - Put the updated `_counter.yml` in the same commit as the rows.
   - If `_counter.yml` conflicts on `git pull`, take the other person's `_counter.yml`, delete the `key` line from the rows you created, and run the formatter again.
-  - While the web is syncing, `_counter.yml` goes back to its previous content. That's fine (the numbers of new rows are reassigned when saved on the web).
+  - While Markus is syncing, `_counter.yml` goes back to its previous content. That's fine (the numbers of new rows are reassigned when saved in Markus).
   - If the formatter reports a duplicate `key`, delete the `key` line from the row created later and run the formatter again.
-  - Adding IDs or changing `key_prefix` is done on the web (the `key` of every row changes together).
+  - Adding IDs or changing `key_prefix` is done in Markus (the `key` of every row changes together).
 
 ## 4. Views and embeds
 
-- Databases appear in the sidebar of the Markus web. To show one inside a page, place a ` ```markus-db ` block.
+- Databases appear in the sidebar of Markus. To show one inside a page, place a ` ```markus-db ` block.
 
 ```markus-db
 database: Tasks
@@ -116,6 +116,6 @@ sort: [{ Due: asc }]
 | `columns` | Columns to show in the table (all if omitted) |
 
 - `filter` is `{ property: value }` for "is" ("contains" for multi-select and person), and `true` / `false` for checked / unchecked. For conditions, write `{ property: { condition: value } }`, where the condition is `eq`, `not`, `contains`, `not_contains`, `gt`, `lt` (numbers), `before`, `after` (dates), `empty: true`, or `not_empty: true`. When you list several, only rows matching all of them are shown (`{ Status: { not: Done }, Due: { before: 2026-11-01 } }`).
-- `type` through `bar_properties` are the view, and look the same to everyone. Changing the view on the web rewrites these lines. `filter` and `sort` are the initial display; filters and sorts a viewer changes on the web stay only in their browser (the file doesn't change).
+- `type` through `bar_properties` are the view, and look the same to everyone. Changing the view in Markus rewrites these lines. `filter` and `sort` are the initial display; filters and sorts a viewer changes in Markus stay only in the browser or desktop app they used (the file doesn't change).
 - Write the view of the database page in `view` in `_database.yml` (separate from block views; it takes the same keys except `database`).
-- When you write `columns`, don't leave out the properties used in `sort` (so the table shows why rows are in that order). `columns` can't be re-picked on the web (opening a row shows all its properties).
+- When you write `columns`, don't leave out the properties used in `sort` (so the table shows why rows are in that order). `columns` can't be re-picked in Markus (opening a row shows all its properties).

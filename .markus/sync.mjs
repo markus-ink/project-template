@@ -1,13 +1,13 @@
 #!/usr/bin/env node
-// この clone を最新にする（Markus が配る。書き換えないでください）。
+// この作業フォルダを最新にする（Markus が配る。書き換えないでください）。
 //   node .markus/sync.mjs
-// Markus の Web と同期しているか（.git/markus-sync）を見て、やり方を選ぶ（AGENTS.md の 1）。
-// Markus が書き出したフォルダ（.git/markus-project がある。clone ではなく、Markus の Web が同期で作った。GitHub なし・GitHub のどちらのプロジェクトでも）は
+// Markus と同期しているか（.git/markus-sync）を見て、やり方を選ぶ（AGENTS.md の 1）。
+// Markus が書き出したフォルダ（.git/markus-project がある。clone ではなく、Markus が同期で作った。GitHub なし・GitHub のどちらのプロジェクトでも）は
 // pull する先が無いので、git を使わずに、同期しているかと規約が今の版かだけを確かめる（05「Markus が書き出すフォルダ」）。
 // 初めに、どちらのフォルダとして動いたかを 1 行で出す
 //   同期していない: git pull --rebase --autostash
-//   目印が古い（ブラウザが落ちたなど）: 何もせずに止まる。人は同期しているつもりのことが多く、書き換えても Web に出ないので、人に伝えさせる
-//   同期している:   git fetch → git reset @{u}（--hard は付けない）。Web の中身はもうファイルにあるので、git の記録だけを合わせる
+//   目印が古い（Markus が落ちたなど）: 何もせずに止まる。人は同期しているつもりのことが多く、書き換えても Markus に出ないので、人に伝えさせる
+//   同期している:   git fetch → git reset @{u}（--hard は付けない）。Markus の内容はもうファイルにあるので、git の記録だけを合わせる
 // その前に、Markus の規約（AGENTS.md の印の間・.markus/agents/）とスクリプトが今の版かを確かめ、古ければ Markus に書き換えてもらってから取り込む。
 // Markus に届かなければ、確かめずに進む
 // 終了コード:
@@ -21,7 +21,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-/** Web は 30 秒ごとに目印を書き直す。これより古ければ、ブラウザが落ちただけで同期していない */
+/** Markus は 30 秒ごとに目印を書き直す。これより古ければ、同期していないとみなす */
 const MARKER_MAX_AGE = 2 * 60 * 1000;
 const ASK_HUMAN = 2;
 const IN_PROGRESS = ["rebase-merge", "rebase-apply", "MERGE_HEAD", "CHERRY_PICK_HEAD"];
@@ -31,7 +31,7 @@ const API_ORIGIN = "https://media.markus.ink";
 const CHECK_TIMEOUT = 3000;
 /** 規約を書き換えてもらうのを待つ時間（Markus が GitHub にコミットを作る） */
 const UPDATE_TIMEOUT = 30_000;
-/** 同期しているとき、書き換えた規約を Web がこのフォルダに書くのを待つ時間 */
+/** 同期しているとき、書き換えた規約を Markus がこのフォルダに書くのを待つ時間 */
 const WRITE_TIMEOUT = 20_000;
 const BEGIN = /^<!-- markus:begin v\d+ -->$/;
 const END = "<!-- markus:end -->";
@@ -54,7 +54,7 @@ const MESSAGES = {
     inProgress: "A rebase or merge is in progress, so nothing was done. Finish or abort it, then run this again.",
     noUpstream: "The current branch has no remote branch it tracks. Nothing was changed.",
     unpushed: (list) => `There are commits that haven't been pushed, so git reset @{u} was not run (it would lose them). Ask a person.\n${list}`,
-    draft: (n) => ` There ${n === 1 ? "is 1 uncommitted change" : `are ${n} uncommitted changes`}. They are what someone is writing on the web, so don't discard, revert, or stash them.`,
+    draft: (n) => ` There ${n === 1 ? "is 1 uncommitted change" : `are ${n} uncommitted changes`}. They can include unsaved edits in Markus, so don't discard, revert, or stash them.`,
     synced: (head, note) => `Syncing: matched ${head}.${note}`,
     rebaseStopped: "The rebase stopped on a conflict. Fix the conflict and run git rebase --continue.",
     pullFailed: "git pull failed. Nothing was changed.",
@@ -63,20 +63,21 @@ const MESSAGES = {
     rulesUpdated: "The Markus rules and scripts in this repository were out of date, so Markus updated them. Read AGENTS.md again before you start.",
     checkFailed: (error) => `Couldn't check whether the Markus rules are up to date (${error}). Continuing with the rules in this folder.`,
     updateFailed: (error) => `The Markus rules in this folder are out of date, but Markus couldn't update them (${error}). Continuing with the rules in this folder.`,
-    notWritten: "Markus updated the Markus rules, but Markus on the web hasn't written them to this folder yet. Wait a moment, then run node .markus/sync.mjs again.",
-    notSyncing: "Markus on the web isn't syncing with this folder, so changes you make won't show up on the web. Nothing was changed. Ask a person to start syncing on the Markus web (\"Sync with local folder\" in the settings), then run this again.",
-    kindExported: "This folder was written out by Markus (not a clone). Don't pull, commit, or push; people save on the Markus web.",
+    notWritten: "Markus updated the Markus rules, but Markus hasn't written them to this folder yet. Wait a moment, then run node .markus/sync.mjs again.",
+    notSyncing: "Markus isn't syncing with this folder, so changes you make won't show up in Markus. Nothing was changed. Tell the person, \"Resume syncing this folder in Markus.\" Once they do, run this again.",
+    kindExported: "This folder was written out by Markus (not a clone). Don't pull, commit, or push. A person reviews and saves the changes in Markus.",
     kindClone: "This folder is a clone.",
-    hostedSynced: "Syncing with Markus on the web. The files are up to date. Changes shown by git status are what hasn't been saved on the web yet; don't discard, revert, or stash them.",
+    hostedSynced: "Syncing with Markus. The files are up to date. Changes shown by git status can include unsaved edits in Markus, so don't discard, revert, or stash them.",
     stale: (minutes) =>
-      `Syncing with Markus on the web has stopped (.git/markus-sync hasn't been rewritten for ${minutes} minutes, e.g. the browser crashed). Changes you make now won't show up on the web, so nothing was changed. Tell a person. Once they resume syncing on the web, run this again. If they say to go ahead without syncing, delete .git/markus-sync and run this again.`,
+      `Syncing with Markus has stopped (.git/markus-sync hasn't been rewritten for ${minutes} minutes). Changes you make now won't show up in Markus, so nothing was changed. Tell the person, "Resume syncing this folder in Markus." Once they do, run this again.`,
+    staleClone: "If they say to go ahead without syncing, delete .git/markus-sync and run this again.",
   },
   ja: {
     gitFailed: (cmd) => `git ${cmd} ができませんでした。何も変えていません。`,
     inProgress: "rebase かマージの途中なので、何もしませんでした。終わらせるか止めてから、もう一度実行してください。",
     noUpstream: "今のブランチに、追っているリモートのブランチがありません。何も変えていません。",
     unpushed: (list) => `push していないコミットがあるので、git reset @{u} をしませんでした（するとコミットが無くなります）。人に聞いてください。\n${list}`,
-    draft: (n) => ` まだコミットしていない変更が ${n} 件あります。Web で書いている途中の内容なので、消さない・戻さない・stash しないでください。`,
+    draft: (n) => ` まだコミットしていない変更が ${n} 件あります。Markus の書きかけが含まれることがあるので、消さない・戻さない・stash しないでください。`,
     synced: (head, note) => `同期中: ${head} に合わせました。${note}`,
     rebaseStopped: "rebase が衝突で止まっています。衝突を直して git rebase --continue してください。",
     pullFailed: "git pull ができませんでした。何も変えていません。",
@@ -85,13 +86,14 @@ const MESSAGES = {
     rulesUpdated: "このリポジトリの Markus の規約とスクリプトが古かったので、Markus が最新にしました。始める前に AGENTS.md を読み直してください。",
     checkFailed: (error) => `Markus の規約が最新か確かめられませんでした（${error}）。このフォルダの規約のまま進めます。`,
     updateFailed: (error) => `このフォルダの Markus の規約が古いですが、Markus に最新にしてもらえませんでした（${error}）。このフォルダの規約のまま進めます。`,
-    notWritten: "Markus の規約を最新にしましたが、Markus の Web がまだこのフォルダに書いていません。少し待ってから、もう一度 node .markus/sync.mjs を実行してください。",
-    notSyncing: "Markus の Web がこのフォルダと同期していないので、書き換えても Web には出ません。何も変えていません。人に、Markus の Web で同期を始めてもらってください（設定の「AI エージェントと編集」）。始めたら、もう一度実行してください。",
-    kindExported: "このフォルダは、Markus が書き出したフォルダです（clone ではありません）。pull・commit・push はしません。保存は人が Markus の Web でします。",
+    notWritten: "Markus の規約を最新にしましたが、Markus がまだこのフォルダに書いていません。少し待ってから、もう一度 node .markus/sync.mjs を実行してください。",
+    notSyncing: "Markus がこのフォルダと同期していないので、書き換えても Markus には出ません。何も変えていません。人に「Markus で、このフォルダの同期を再開してください」と伝えてください。再開したら、もう一度実行してください。",
+    kindExported: "このフォルダは、Markus が書き出したフォルダです（clone ではありません）。pull・commit・push はしません。保存は人が Markus でします。",
     kindClone: "このフォルダは clone です。",
-    hostedSynced: "Markus の Web と同期しています。ファイルは最新です。git status に出る変更は、Web でまだ保存していない内容なので、消さない・戻さない・stash しないでください。",
+    hostedSynced: "Markus と同期しています。ファイルは最新です。git status に出る変更には Markus の書きかけが含まれることがあるので、消さない・戻さない・stash しないでください。",
     stale: (minutes) =>
-      `Markus の Web との同期が止まっています（.git/markus-sync が ${minutes} 分前から書き直されていません。ブラウザが落ちたなど）。このまま書き換えても Web には出ないので、何も変えていません。人に伝えてください。Web で同期を再開したら、もう一度実行してください。人が同期しないで進めると言ったら、.git/markus-sync を消してから、もう一度実行してください。`,
+      `Markus との同期が止まっています（.git/markus-sync が ${minutes} 分前から書き直されていません）。このまま書き換えても Markus には出ないので、何も変えていません。人に「Markus で、このフォルダの同期を再開してください」と伝えてください。再開したら、もう一度実行してください。`,
+    staleClone: "人が同期しないで進めると言ったら、.git/markus-sync を消してから、もう一度実行してください。",
   },
 };
 const t = MESSAGES[language()];
@@ -137,7 +139,7 @@ function markerAge() {
   }
 }
 
-/** Web は .markus/ のスクリプトを書かないので、reset だけでは古いまま（無ければ無いまま）になる。Web で変えられないファイルなので、書きかけは混ざらない */
+/** 同期中のクローンには .markus/ のスクリプトを書かないので、reset だけでは古いまま（無ければ無いまま）になる。Markus で変えられないファイルなので、書きかけは混ざらない */
 function restoreScripts() {
   const scripts = must("ls-tree", "--name-only", "HEAD", ".markus/").split("\n").filter((p) => p.endsWith(".mjs"));
   if (scripts.length) must("checkout", "HEAD", "--", ...scripts);
@@ -222,7 +224,7 @@ async function checkRules() {
   return current;
 }
 
-/** 書き換えてもらった規約を、Web がこのフォルダに書き終えるまで待つ（古いまま読ませない） */
+/** 書き換えてもらった規約を、Markus がこのフォルダに書き終えるまで待つ（古いまま読ませない） */
 async function waitWritten(rulesCurrent) {
   if (!rulesCurrent) return;
   const until = Date.now() + WRITE_TIMEOUT;
@@ -235,7 +237,7 @@ async function waitWritten(rulesCurrent) {
 console.log(hostedProject ? t.kindExported : t.kindClone);
 
 if (hostedProject) {
-  // GitHub なしのプロジェクト: ファイルも .git も Web が書くので、同期していれば最新。同期していなければ書き換えさせない
+  // Markus が書き出したフォルダ: ファイルも .git も Markus が書くので、同期していれば最新。同期していなければ書き換えさせない
   const age = markerAge();
   if (age === null) stop(t.notSyncing);
   if (age >= MARKER_MAX_AGE) stop(t.stale(Math.floor(age / 60_000)));
@@ -249,7 +251,7 @@ if (inProgress()) stop(t.inProgress);
 if (!git("rev-parse", "--verify", "--quiet", "@{u}").ok) stop(t.noUpstream);
 // 目印が古ければ、規約の確かめも pull もしない（何も変えずに人に伝えさせる）
 const age = markerAge();
-if (age !== null && age >= MARKER_MAX_AGE) stop(t.stale(Math.floor(age / 60_000)));
+if (age !== null && age >= MARKER_MAX_AGE) stop(`${t.stale(Math.floor(age / 60_000))} ${t.staleClone}`);
 
 const rulesCurrent = await checkRules();
 
@@ -259,7 +261,7 @@ if (age !== null) {
   if (unpushed) stop(t.unpushed(unpushed), ASK_HUMAN);
   must("reset", "--quiet", "@{u}");
   restoreScripts();
-  // 規約のファイル（AGENTS.md・.markus/agents/）は Web が書く。書き終わるまで待つ（古いまま読ませない）
+  // 規約のファイル（AGENTS.md・.markus/agents/）は Markus が書く。書き終わるまで待つ（古いまま読ませない）
   await waitWritten(rulesCurrent);
   const changes = must("status", "--porcelain").split("\n").filter(Boolean).length;
   console.log(t.synced(must("rev-parse", "--short", "HEAD"), changes ? t.draft(changes) : ""));
