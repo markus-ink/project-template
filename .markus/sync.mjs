@@ -6,7 +6,7 @@
 // pull する先が無いので、git を使わずに、同期しているかと規約が今の版かだけを確かめる（05「Markus が書き出すフォルダ」）。
 // 初めに、どちらのフォルダとして動いたかを 1 行で出す
 //   同期していない: git pull --rebase --autostash
-//   目印が古い（Markus が落ちたなど）: 何もせずに止まる。人は同期しているつもりのことが多く、書き換えても Markus に出ないので、人に伝えさせる
+//   目印が古い（Markus が落ちた・目印だけ書けないなど）: 同期しているか分からないので、何もせずに止まる。人は同期しているつもりのことが多く、同期していなければ書き換えても Markus に出ないので、人に伝えさせる
 //   同期している:   git fetch → git reset @{u}（--hard は付けない）。Markus の内容はもうファイルにあるので、git の記録だけを合わせる
 // その前に、Markus の規約（AGENTS.md の印の間・.markus/agents/）とスクリプトが今の版かを確かめ、古ければ Markus に書き換えてもらってから取り込む。
 // Markus に届かなければ、確かめずに進む
@@ -21,7 +21,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-/** Markus は 30 秒ごとに目印を書き直す。これより古ければ、同期していないとみなす */
+/** Markus は 30 秒ごとに目印を書き直す。これより古ければ、同期しているか分からない（落ちた・目印だけ書けないなど）ので、同期していないとみなす */
 const MARKER_MAX_AGE = 2 * 60 * 1000;
 const ASK_HUMAN = 2;
 const IN_PROGRESS = ["rebase-merge", "rebase-apply", "MERGE_HEAD", "CHERRY_PICK_HEAD"];
@@ -69,7 +69,7 @@ const MESSAGES = {
     kindClone: "This folder is a clone.",
     hostedSynced: "Syncing with Markus. The files are up to date. Changes shown by git status can include unsaved edits in Markus, so don't discard, revert, or stash them.",
     stale: (minutes) =>
-      `Syncing with Markus has stopped (.git/markus-sync hasn't been rewritten for ${minutes} minutes). Changes you make now won't show up in Markus, so nothing was changed. Tell the person, "Resume syncing this folder in Markus." Once they do, run this again.`,
+      `Can't tell whether Markus is syncing with this folder (.git/markus-sync hasn't been rewritten for ${minutes} minutes). If it isn't, changes you make won't show up in Markus, so nothing was changed. Tell the person, "Resume syncing this folder in Markus." Once they do, run this again.`,
     staleClone: "If they say to go ahead without syncing, delete .git/markus-sync and run this again.",
   },
   ja: {
@@ -92,7 +92,7 @@ const MESSAGES = {
     kindClone: "このフォルダは clone です。",
     hostedSynced: "Markus と同期しています。ファイルは最新です。git status に出る変更には Markus の書きかけが含まれることがあるので、消さない・戻さない・stash しないでください。",
     stale: (minutes) =>
-      `Markus との同期が止まっています（.git/markus-sync が ${minutes} 分前から書き直されていません）。このまま書き換えても Markus には出ないので、何も変えていません。人に「Markus で、このフォルダの同期を再開してください」と伝えてください。再開したら、もう一度実行してください。`,
+      `Markus と同期しているか分かりません（.git/markus-sync が ${minutes} 分前から書き直されていません）。同期していなければ書き換えても Markus に出ないので、何も変えていません。人に「Markus で、このフォルダの同期を再開してください」と伝えてください。再開したら、もう一度実行してください。`,
     staleClone: "人が同期しないで進めると言ったら、.git/markus-sync を消してから、もう一度実行してください。",
   },
 };
