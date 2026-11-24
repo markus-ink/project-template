@@ -2,6 +2,7 @@
 // Markus に置いたファイル（画像・動画・音声・PDF など、何でも）を取る・置く（Markus が配る。書き換えないでください）。
 //   node .markus/media.mjs <URL>…            一時ディレクトリに保存して、保存した場所を 1 行ずつ出す。
 //   node .markus/media.mjs upload <ファイル>…  この clone の Markus のプロジェクトに置いて、URL を 1 行ずつ出す（ページには自分で書く）。
+//   node .markus/media.mjs upload --to files/<フォルダ> <ファイル>…  置いて、ファイルの置き場の記録（files/<フォルダ>/<ファイル名>.yml）も書く。URL とタブと記録のパスを 1 行ずつ出す。
 // 画像は Markus のプロジェクトのメンバーしか見られないので、初めてのときはこの端末を Markus に連携する。
 // そのときは開く URL とコードを出して止まる（終了コード 2）。人に伝え、Markus で「許可」を押してもらってから、同じコマンドをもう一度実行する。
 // トークンは ~/.config/markus/ に置き、Markus のメディアの URL（media.markus.ink）にだけ付ける。
@@ -9,6 +10,7 @@
 // Markus の Web が書き出したフォルダ（clone ではないもの。GitHub なし・GitHub のどちらのプロジェクトでも）は、.git/markus-project で決める。
 
 import { spawnSync } from "node:child_process";
+import crypto from "node:crypto";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
@@ -69,7 +71,8 @@ const MESSAGES = {
     notFound: (raw) => `Not found (it was deleted, or the URL is wrong): ${raw}`,
     failed: (status, message, raw) => `Can't fetch it (${status} ${message}): ${raw}`,
     stillUnauthorized: (raw) => `Can't fetch it (still can't read it after linking again): ${raw}`,
-    usage: "Usage: node .markus/media.mjs <URL>…  (fetch)\n       node .markus/media.mjs upload <file>…  (upload)",
+    usage: "Usage: node .markus/media.mjs <URL>…  (fetch)\n       node .markus/media.mjs upload <file>…  (upload)\n       node .markus/media.mjs upload --to files/<folder> <file>…  (upload and write a record in Files)",
+    badDir: (to) => `--to takes files or a folder inside it, such as files/Contracts: ${to}`,
     noFile: (file) => `File not found: ${file}`,
     tooLarge: (file) => `Too large (files can be up to 20–100MB depending on the plan): ${file}`,
     noRepo: "Can't tell which Markus project this is: this clone has no GitHub remote (git remote -v)",
@@ -98,7 +101,8 @@ const MESSAGES = {
     notFound: (raw) => `見つかりません（消されたか、URL が違います）: ${raw}`,
     failed: (status, message, raw) => `取れません（${status} ${message}）: ${raw}`,
     stillUnauthorized: (raw) => `取れません（連携し直しても読めません）: ${raw}`,
-    usage: "使い方: node .markus/media.mjs <URL>…（取る）\n       node .markus/media.mjs upload <ファイル>…（置く）",
+    usage: "使い方: node .markus/media.mjs <URL>…（取る）\n       node .markus/media.mjs upload <ファイル>…（置く）\n       node .markus/media.mjs upload --to files/<フォルダ> <ファイル>…（置いて、ファイルの置き場の記録も書く）",
+    badDir: (to) => `--to には files か、その中のフォルダ（files/契約 など）を書いてください: ${to}`,
     noFile: (file) => `ファイルがありません: ${file}`,
     tooLarge: (file) => `大きすぎます（1 ファイルはプランにより 20〜100MB まで）: ${file}`,
     noRepo: "どの Markus のプロジェクトか分かりません。この clone に GitHub のリモートがありません（git remote -v）",
@@ -300,7 +304,7 @@ async function uploadOne(file) {
       redirect: "error",
     });
     const json = await res.json().catch(() => ({}));
-    if (res.ok && json.url) return json.url;
+    if (res.ok && json.url) return json;
     // 期限が切れた・解除された。捨てて連携し直す
     if (res.status === 401) {
       remove(tokenFile(host));
@@ -314,17 +318,84 @@ async function uploadOne(file) {
   throw new Error(t.stillUnauthorizedUpload(file));
 }
 
+/** --to のフォルダ（files か、その中）。Markus の予約の名前（. と _ で始まる）は断る */
+function filesDir(to) {
+  const parts = to.split(/[\\/]/).filter((p, i) => p !== "." && (p || i === 0));
+  if (parts[0] !== "files" || parts.slice(1).some((p) => /^[._]/.test(p))) throw new Error(t.badDir(to));
+  return parts.join("/");
+}
+
+const nameKey = (name) => name.normalize("NFC").toLowerCase();
+
+/** 記録のファイル名（<ファイル名>.yml）。Web と同じく、使えない文字は全角にし、重なれば番号を付ける（04「ファイルの置き場」） */
+function recordName(dir, name) {
+  const [, raw, ext] = /^(.+)(\.[^\s./\\:*?"<>|]{1,12})$/.exec(name.normalize("NFC")) ?? [null, name.normalize("NFC"), ""];
+  let stem = raw
+    .replace(/[\u0000-\u001f\u007f]/g, "")
+    .replace(/[/\\:*?"<>|]/g, (c) => String.fromCharCode(c.charCodeAt(0) + 0xfee0))
+    .replace(/^[\s.]+|[\s.]+$/g, "");
+  if (stem.startsWith("_")) stem = `＿${stem.slice(1)}`;
+  let chars = Array.from(stem || "file").slice(0, 100);
+  while (Buffer.byteLength(chars.join("") + ext) > 200) chars = chars.slice(0, -1);
+  stem = chars.join("").replace(/[\s.]+$/, "");
+  const taken = new Set(fs.existsSync(dir) ? fs.readdirSync(dir).map(nameKey) : []);
+  let out = `${stem}${ext}.yml`;
+  for (let i = 2; taken.has(nameKey(out)); i++) out = `${stem} ${i}${ext}.yml`;
+  return out;
+}
+
+const ULID_CHARS = "0123456789ABCDEFGHJKMNPQRSTVWXYZ";
+function ulid() {
+  let time = Date.now();
+  let head = "";
+  for (let i = 0; i < 10; i++, time = Math.floor(time / 32)) head = ULID_CHARS[time % 32] + head;
+  return head + Array.from(crypto.randomBytes(16), (b) => ULID_CHARS[b % 32]).join("");
+}
+
+/** 置いた人（ai:<人>。AGENTS.md の 2 と同じ） */
+function author() {
+  const name = read(path.join(root, ".git", "markus-user")) || (spawnSync("git", ["-C", root, "config", "user.name"], { encoding: "utf8" }).stdout ?? "").trim();
+  return name ? `ai:${name}` : null;
+}
+
+/** 置いたファイルの記録を書いて、リポジトリの一番上からのパスを返す */
+function writeRecord(dir, file, { url, size }) {
+  const abs = path.join(root, dir);
+  fs.mkdirSync(abs, { recursive: true });
+  const name = recordName(abs, path.basename(file));
+  const by = author();
+  const lines = [`ulid: ${ulid()}`, `url: ${url}`, ...(Number.isFinite(size) ? [`size: ${size}`] : []), ...(by ? [`created_by: ${/^ai:[\p{L}\p{N}._@-]+$/u.test(by) ? by : JSON.stringify(by)}`] : [])];
+  fs.writeFileSync(path.join(abs, name), `${lines.join("\n")}\n`, { flag: "wx" });
+  return `${dir}/${name}`;
+}
+
 const args = process.argv.slice(2);
 const upload = args[0] === "upload";
-const targets = upload ? args.slice(1) : args;
+let to = null;
+if (upload && args[1] === "--to") {
+  try {
+    to = filesDir(args[2] ?? "");
+  } catch (e) {
+    console.error(e.message);
+    process.exit(1);
+  }
+}
+const targets = !upload ? args : args.slice(to === null ? 1 : 3);
 if (!targets.length) {
   console.error(t.usage);
   process.exit(1);
 }
+
+async function run(target) {
+  if (!upload) return fetchOne(target);
+  const res = await uploadOne(target);
+  return to === null ? res.url : `${res.url}\t${writeRecord(to, target, res)}`;
+}
+
 let failed = false;
 for (const target of targets) {
   try {
-    console.log(await (upload ? uploadOne(target) : fetchOne(target)));
+    console.log(await run(target));
   } catch (e) {
     if (e instanceof NeedsApproval) {
       console.log(e.message);

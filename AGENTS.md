@@ -1,6 +1,6 @@
 # AGENTS.md
 
-<!-- markus:begin v58 -->
+<!-- markus:begin v59 -->
 <!-- Markus rewrites everything between these markers (Markus rules). Do not change it. To add rules, write them under "Project rules" below. -->
 
 This repository is a spec repository managed by **Markus**. People edit it from the Markus editor, and AI agents edit the files in this folder directly. Because it is edited from both sides at the same time, follow the rules below. If they conflict with "Project rules" below, these rules take precedence.
@@ -30,6 +30,7 @@ Before you create or change a file, always read the file below. If you write wit
 | Pages (`.md` in `docs/`), side pages (`sidepages/`), and the body of database rows | `.markus/agents/pages.md` |
 | Row properties, `_database.yml`, and databases embedded in pages | `.markus/agents/databases.md` |
 | Sheet CSVs, `_sheet.yml`, and sheets embedded in pages | `.markus/agents/sheets.md` |
+| Files (the `.yml` records in `files/`) | `.markus/agents/files.md` |
 | Replying to, resolving, or starting comment threads; changing body text that a comment points to | `.markus/agents/comments.md` |
 | Formulas (`<formula ref>` in text and ` ```markus-formula `); reading databases and sheets in an HTML block | `.markus/agents/formulas.md` |
 
@@ -45,6 +46,7 @@ Before you create or change a file, always read the file below. If you write wit
 | `sidepages/` | Side pages (pages inside a page; not shown in the sidebar). The parent is the page that has a ` ```markus-page ` block with `ulid: <side page's ulid>` |
 | `databases/` | Databases. Each folder with a `_database.yml` is one database, and each `.md` inside it is one row. Row properties are in the frontmatter |
 | `sheets/` | Sheets (spreadsheets). Each folder with a `_sheet.yml` is one sheet, with one CSV per tab |
+| `files/` | Files stored without a page (logos, contracts, recordings, and so on). Each `<file name>.yml` is the record of one file: `url` is the content and `note` is the description. Folders are directories |
 | `.markus/templates/` | Templates. One file is one template; the file name is its name, and the content is only the body to insert (no frontmatter). People insert them anywhere in a page or row with "/template". When you write a page or row and a template fits, write it in that shape |
 | `.markus/comments/` | Comments. `<page's ulid>/<thread's ulid>.md` is one thread; open threads have `status: open` |
 | `.markus/members.yml` | Members' `handle`s and names (person values in databases are `handle`s) |
@@ -57,8 +59,9 @@ Before you create or change a file, always read the file below. If you write wit
   - The first time, or when the link has expired, it prints a URL to open and a code, and stops (exit code 2). Pass that text to a person as is, and when they say they've approved it, run the same command again. Don't open a browser and approve it yourself.
   - Don't use this script for URLs on other sites (fetch them with `curl` or similar).
   - An image with `data-figma` is a Figma frame (a Figma block). The image is enough to see what the screen looks like. Only when you need exact values (spacing, colors, text styles, components, etc.), also fetch the `data-figma` URL with the same script. `spec.json` in the zip is the layer tree (coordinates are from the frame's top-left; it is large, so search for the layers you need), and `assets/` has the original icon and image files.
+  - If the file you were asked about isn't on a page, search the records in `files/` by file name and `note`, and fetch the `url` with the same script.
   - For videos, look at the `poster` image, and if needed, extract frames with `ffmpeg`. For YouTube videos (`<iframe>`) and bookmarks (`<bookmark>`), read the `title` to see what they are.
-- To put a file on a page (an image, video, audio, PDF, or any other file), upload it to Markus with `node .markus/media.mjs upload <file>…` and write the URL it prints (one line per file) on the page (see `pages.md` for how. Don't add the file to the repository). Only devices of people with the Editor role or higher in this project can upload. If it prints a linking code, pass it to a person, the same as when fetching.
+- To put a file on a page (an image, video, audio, PDF, or any other file), upload it to Markus with `node .markus/media.mjs upload <file>…` and write the URL it prints (one line per file) on the page (see `pages.md` for how. Don't add the file to the repository). Only devices of people with the Editor role or higher in this project can upload. If it prints a linking code, pass it to a person, the same as when fetching. To store a file without putting it on a page, use `node .markus/media.mjs upload --to files/<folder> <file>…` (see `files.md`).
 - Commits saved from Markus have the Markus App (a bot) as the author. Check who actually made the change with the `Markus-User:` trailer in the commit message (the same applies to lines that `git blame` attributes to the bot).
 
 ### When someone gives you a location
@@ -68,14 +71,14 @@ Before you create or change a file, always read the file below. If you write wit
 | `docs/Features/Login.md`, `docs/Features/` | A path from the top of the repository (a trailing `/` means a folder) |
 | `docs/Features/Login.md:42-48` | Lines 42–48 of that file. Count from line 1, including the frontmatter |
 | `sheets/Budget/Monthly.csv B2:D7` | Rows 2–7, columns B–D of that CSV |
-| A Markus project link (`https://…/p/<project>/…`) | Don't open it (it requires login). Find the file by the ulid in the URL as above (`?row=<ulid>` is a database row). In `…/-/<path>`, what follows `-/` is the path |
+| A Markus project link (`https://…/p/<project>/…`) | Don't open it (it requires login). Find the file by the ulid in the URL as above (`?row=<ulid>` is a database row; `…/files?file=<ulid>` is a stored file, so look in `files/`; `…/files?folder=<folder>` is `files/<folder>/`). In `…/-/<path>`, what follows `-/` is the path |
 
 - If the lines you were given don't match what the person is talking about, this folder is out of date. Update it as described in 1.
 
 ### When you tell someone a location
 
 - If Markus is syncing with this folder, the `url:` line in `.git/markus-sync` is the link to the project in Markus (`<url>`). Use the file's ulid to link to the URLs below.
-  - A page or database row is `<url>/<ulid>`, a database is `<url>/db/<ulid of _database.yml>`, a sheet is `<url>/sheet/<ulid of _sheet.yml>`, and a comment is `<url>/<page's ulid>?thread=<thread's ulid>` (a comment on a whole database or sheet is `<url>/db/<ulid>?thread=…` or `<url>/sheet/<ulid>?thread=…`).
+  - A page or database row is `<url>/<ulid>`, a database is `<url>/db/<ulid of _database.yml>`, a sheet is `<url>/sheet/<ulid of _sheet.yml>`, a stored file is `<url>/files?file=<record's ulid>`, and a comment is `<url>/<page's ulid>?thread=<thread's ulid>` (a comment on a whole database or sheet is `<url>/db/<ulid>?thread=…` or `<url>/sheet/<ulid>?thread=…`).
   - A place inside a page is `<url>/<page's ulid>?block=<text at the start of the block>`. Use up to 30 characters, URL-encoded. Write the text as it appears in Markus (no `## `, `- `, `**`, or other markup). If an earlier block starts with the same text, add `&n=<which one>`.
 - If there is no `url:` line, the folder isn't syncing with Markus, or there is no ulid yet, write the path from the top of the repository (`docs/Features/Login.md`). Don't share paths on your machine like `/Users/…`, because others can't open them.
 
