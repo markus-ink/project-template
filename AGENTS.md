@@ -1,6 +1,6 @@
 # AGENTS.md
 
-<!-- markus:begin v59 -->
+<!-- markus:begin v60 -->
 <!-- Markus rewrites everything between these markers (Markus rules). Do not change it. To add rules, write them under "Project rules" below. -->
 
 This repository is a spec repository managed by **Markus**. People edit it from the Markus editor, and AI agents edit the files in this folder directly. Because it is edited from both sides at the same time, follow the rules below. If they conflict with "Project rules" below, these rules take precedence.
@@ -30,7 +30,7 @@ Before you create or change a file, always read the file below. If you write wit
 | Pages (`.md` in `docs/`), side pages (`sidepages/`), and the body of database rows | `.markus/agents/pages.md` |
 | Row properties, `_database.yml`, and databases embedded in pages | `.markus/agents/databases.md` |
 | Sheet CSVs, `_sheet.yml`, and sheets embedded in pages | `.markus/agents/sheets.md` |
-| Files (the `.yml` records in `files/`) | `.markus/agents/files.md` |
+| Files (the `.yml` records and `.md` texts in `files/`) | `.markus/agents/files.md` |
 | Replying to, resolving, or starting comment threads; changing body text that a comment points to | `.markus/agents/comments.md` |
 | Formulas (`<formula ref>` in text and ` ```markus-formula `); reading databases and sheets in an HTML block | `.markus/agents/formulas.md` |
 
@@ -46,20 +46,20 @@ Before you create or change a file, always read the file below. If you write wit
 | `sidepages/` | Side pages (pages inside a page; not shown in the sidebar). The parent is the page that has a ` ```markus-page ` block with `ulid: <side page's ulid>` |
 | `databases/` | Databases. Each folder with a `_database.yml` is one database, and each `.md` inside it is one row. Row properties are in the frontmatter |
 | `sheets/` | Sheets (spreadsheets). Each folder with a `_sheet.yml` is one sheet, with one CSV per tab |
-| `files/` | Files stored without a page (logos, contracts, recordings, and so on). Each `<file name>.yml` is the record of one file: `url` is the content and `note` is the description. Folders are directories |
+| `files/` | Files stored without a page (logos, contracts, recordings, and so on). Each `<file name>.yml` is the record of one file: `url` is the content and `note` is the description. `<title>.md` is a text (writing that isn't a page: web articles, raw meeting notes, and so on; `source` is the URL of the original page). Folders are directories |
 | `.markus/templates/` | Templates. One file is one template; the file name is its name, and the content is only the body to insert (no frontmatter). People insert them anywhere in a page or row with "/template". When you write a page or row and a template fits, write it in that shape |
 | `.markus/comments/` | Comments. `<page's ulid>/<thread's ulid>.md` is one thread; open threads have `status: open` |
 | `.markus/members.yml` | Members' `handle`s and names (person values in databases are `handle`s) |
 
 - When you read a page, side page or database row, also read all of its comments (the files in `.markus/comments/<its ulid>/`, resolved threads included; if the folder doesn't exist, it has no comments). They may disagree with the body, point out what isn't decided yet, or explain why something was decided.
 - A `<formula ref="…"></formula>` in text is where Markus shows a value calculated from files (a count, a sum, and so on). The value is not written in the file. When you need it, calculate it with `node .markus/formula.mjs <page>…` (it prints `id = value` for each formula). The code is in ` ```markus-formula id="…" ` on the same page.
-- Internal links are `[Title](markus:<ulid>)`. Find the target with `grep -rl "ulid: <ulid>" docs/ databases/ sheets/ sidepages/` (for a database or sheet, you will find its `_database.yml` or `_sheet.yml`). Find a side page's parent with the same grep (the files it prints, minus the side page itself, are the parent).
+- Internal links are `[Title](markus:<ulid>)`. Find the target with `grep -rl "ulid: <ulid>" docs/ databases/ sheets/ sidepages/ files/` (for a database or sheet, you will find its `_database.yml` or `_sheet.yml`). Find a side page's parent with the same grep (the files it prints, minus the side page itself, are the parent).
   - A link to a sheet tab is `[Sheet name / Tab name](markus:<ulid of _sheet.yml>#<tab name>)`. In the tab name, percent-encode (`%XX`) only spaces and `(` `)` `<` `>` `[` `]` `%` `#` `\`, and write every other character as is, including non-ASCII ones (`Top 5 (beta)` → `Top%205%20%28beta%29`).
 - Images, videos, audio, PDFs, and other files (CSV, Office, zip, and so on) are stored at `https://media.markus.ink/...` URLs. Only project members can view them, so `curl` can't fetch them. Save them to a temporary directory with `node .markus/media.mjs <URL>…` and read the paths it prints (don't commit the fetched files).
   - The first time, or when the link has expired, it prints a URL to open and a code, and stops (exit code 2). Pass that text to a person as is, and when they say they've approved it, run the same command again. Don't open a browser and approve it yourself.
   - Don't use this script for URLs on other sites (fetch them with `curl` or similar).
   - An image with `data-figma` is a Figma frame (a Figma block). The image is enough to see what the screen looks like. Only when you need exact values (spacing, colors, text styles, components, etc.), also fetch the `data-figma` URL with the same script. `spec.json` in the zip is the layer tree (coordinates are from the frame's top-left; it is large, so search for the layers you need), and `assets/` has the original icon and image files.
-  - If the file you were asked about isn't on a page, search the records in `files/` by file name and `note`, and fetch the `url` with the same script.
+  - If the file you were asked about isn't on a page, search the records in `files/` by file name and `note`, and fetch the `url` with the same script. For writing, also search the `.md` files in `files/`.
   - For videos, look at the `poster` image, and if needed, extract frames with `ffmpeg`. For YouTube videos (`<iframe>`) and bookmarks (`<bookmark>`), read the `title` to see what they are.
 - To put a file on a page (an image, video, audio, PDF, or any other file), upload it to Markus with `node .markus/media.mjs upload <file>…` and write the URL it prints (one line per file) on the page (see `pages.md` for how. Don't add the file to the repository). Only devices of people with the Editor role or higher in this project can upload. If it prints a linking code, pass it to a person, the same as when fetching. To store a file without putting it on a page, use `node .markus/media.mjs upload --to files/<folder> <file>…` (see `files.md`).
 - Commits saved from Markus have the Markus App (a bot) as the author. Check who actually made the change with the `Markus-User:` trailer in the commit message (the same applies to lines that `git blame` attributes to the bot).

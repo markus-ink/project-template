@@ -2,11 +2,11 @@
 
 Markus rewrites this file (Markus rules). Do not change it. To add rules, write them under "Project rules" in AGENTS.md.
 
-These are the rules for storing, moving, renaming, describing, and deleting files in Files (the "Files" screen in Markus).
+These are the rules for storing, moving, renaming, describing, and deleting files and texts in Files (the "Files" screen in Markus).
 
 ## 1. Records
 
-- The content of a stored file is in Markus. The repository only has one record per file, `files/<folder>/<file name>.yml`. Don't put anything other than `.yml` in `files/` (an image or PDF placed there doesn't show up in Markus).
+- The content of a stored file is in Markus. The repository only has one record per file, `files/<folder>/<file name>.yml`. Put only `.yml` records and `.md` texts (section 4) in `files/` (an image or PDF placed there doesn't show up in Markus).
 - The name of the record is the file name, including its extension, plus `.yml` (`Logo.svg` becomes `Logo.svg.yml`).
 
 ```yaml
@@ -38,3 +38,25 @@ note: Signed on 2026-11-05. Valid for two years
 
 - Write the record's `url` on the page as described in `pages.md` (image, video, audio, PDF, or file). Don't upload the same file again.
 - Use the `url` for links to a stored file, too (the record's path and `markus:` links don't work).
+
+## 4. Texts
+
+A text is writing that isn't a page (a web article, raw meeting notes, research notes, and so on). It is stored with its content in `files/<folder>/<title>.md`.
+
+```markdown
+---
+ulid: 01JC1A2B3C4D5E6F7G8H9J0K1N
+title: Key points of the revised subcontracting law
+created_by: ai:sarah
+source: https://example.com/articles/123
+---
+
+Body
+```
+
+- The way to write the body, the file name, and the `ulid` are the same as in `pages.md`. When you finish writing, pass it to `node .markus/fmt.mjs`.
+- The frontmatter has only `ulid`, `title`, `created_by`, and `source` if there is an original page (an `http` or `https` URL). Don't write `rank` or `icon`.
+- Links are `[Title](markus:<ulid>)`, the same as for pages.
+- When you are asked for a page, write it in `docs/`. Create a text only when you are asked to store material that isn't a page.
+- To turn a text into a page, move it from `files/` to `docs/` (with `git mv` in a clone) and remove `created_by` and `source` (keep `source` as a line `[Original page](URL)` at the top of the body).
+- Delete only when asked. If there is a `.markus/comments/<ulid>/`, delete it too.

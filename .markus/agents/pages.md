@@ -7,7 +7,7 @@ These are the rules for creating or changing pages (`.md` in `docs/`), side page
 ## 1. Page files
 
 - A page is a `.md` file. Folders are directories.
-- Always put pages under `docs/`. A `.md` placed outside `docs/` doesn't appear in Markus.
+- Always put pages under `docs/`. A `.md` placed outside `docs/` doesn't become a page (for writing that isn't a page, see texts in `files.md`).
 - The file name is made from the page title. The real title is `title` in the frontmatter.
   - Replace characters that can't be used in file names, `/ \ : * ? " < > |`, with their full-width forms (`/` → `／`). Use at most the first 50 characters of the title. If the same name already exists in the folder, add " 2" (`Untitled 2.md`).
   - A page or row created in Markus may have a file name like `Untitled 7KQX.md` ("Untitled" and the last 4 characters of its ulid; `無題 7KQX.md` in Japanese), `Untitled.md` or `Untitled 2.md` until it's saved in Markus, even though it has a title. This is normal: don't rename the file, write to it as it is, and don't point it out to the person. Markus renames it to match the title when that page is saved.
