@@ -123,6 +123,7 @@ tab: Monthly
 - Always write tables with `<table>`. Don't use GFM tables (`| a | b |`) (they can't express colors, widths, or headers, and are fully rewritten when saved in Markus).
   - Always write both `header-row` (make the first row a header) and `header-column` (make the first column a header). Write header cells with `<td>` too.
   - Colors go on `<col color>` (column), `<tr color>` (row), and `<td color>` (cell); widths go on `<col width>` (px). If you don't need them, you can leave out `<colgroup>`.
+  - Column alignment goes on `<col align="center">` or `<col align="right">` (for number columns, say). Don't write left alignment. Put alignment only on columns (not on `<td>` or `<tr>`).
   - Each cell is one line of Markdown; use `<br>` for line breaks.
 - Color names are `gray` `brown` `orange` `yellow` `green` `blue` `purple` `pink` `red`. For background colors, add `_bg` (`yellow_bg`). Don't use `style` attributes or hex color codes.
   - To fill a whole paragraph, heading, or list item, wrap all of its text in one background-color `<span>` (`## <span color="blue_bg">Heading</span>`, `- <span color="yellow_bg">Item text</span>`). Markus then fills the whole block.
