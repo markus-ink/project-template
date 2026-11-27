@@ -107,7 +107,7 @@ sort: [{ Due: asc }]
 |---|---|
 | `database` | The database's folder name (required; `Tasks` for `databases/Tasks/`) |
 | `type` | The kind of view: `table`, `board`, `timeline`. Write it for tables too (a block without it is read as a table; the formatter adds `type: table`) |
-| `group_by` | The property to group by (status or select). For boards, the first status or select if omitted |
+| `group_by` | The property to group by (status, select, multi-select or person). With multi-select and person, a row with two values appears in both groups. For boards, the first status or select if omitted |
 | `date_start`, `date_end` | The date properties for the timeline's range (the first and second date properties if omitted) |
 | `table_columns` | Columns to show in the timeline's table on the left, besides the name (`[Status, Assignee]`) |
 | `bar_properties` | Properties to show on the timeline's bars, besides the name |
